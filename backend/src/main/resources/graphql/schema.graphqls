@@ -1,0 +1,132 @@
+type Query {
+  jobs(first: Int, after: String, status: String, category: String, minPrice: Int, maxPrice: Int, sort: String, order: String): JobConnection!
+  job(id: ID!): Job
+  companies(first: Int, after: String): CompanyConnection!
+  company(id: ID!): Company
+  jobsNear(latitude: Float!, longitude: Float!, radiusKm: Float!): [Job!]!
+  jobsInBox(minLat: Float!, minLon: Float!, maxLat: Float!, maxLon: Float!): [Job!]!
+  slots(startsAt: String, endsAt: String): [InterviewSlot!]!
+}
+
+type Mutation {
+  createJob(input: CreateJobInput!): Job!
+  updateJob(id: ID!, input: UpdateJobInput!): Job!
+  deleteJob(id: ID!): Boolean!
+  createSlot(input: CreateSlotInput!): InterviewSlot!
+  login(username: String!, password: String!): AuthPayload!
+}
+
+type Job {
+  id: ID!
+  title: String!
+  description: String
+  category: String
+  status: String!
+  location: String
+  minSalary: Int
+  maxSalary: Int
+  employmentType: String
+  skillsRequired: String
+  latitude: Float
+  longitude: Float
+  startsAt: String
+  endsAt: String
+  createdAt: String
+  company: Company
+  applications: [Application!]
+  salaryRange: String @deprecated(reason: "Use minSalary and maxSalary instead")
+}
+
+type Company {
+  id: ID!
+  companyName: String!
+  industry: String
+  address: String
+  approved: Boolean!
+  jobs: [Job!]
+}
+
+type Application {
+  id: ID!
+  status: String!
+  appliedAt: String
+}
+
+type InterviewSlot {
+  id: ID!
+  jobId: Int!
+  candidateId: Int
+  startsAt: String!
+  endsAt: String!
+  status: String!
+  createdAt: String
+}
+
+type JobConnection {
+  edges: [JobEdge!]!
+  pageInfo: PageInfo!
+}
+
+type JobEdge {
+  node: Job!
+  cursor: String!
+}
+
+type CompanyConnection {
+  edges: [CompanyEdge!]!
+  pageInfo: PageInfo!
+}
+
+type CompanyEdge {
+  node: Company!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean
+  startCursor: String
+  endCursor: String
+}
+
+type AuthPayload {
+  token: String!
+  email: String
+  role: String
+}
+
+input CreateJobInput {
+  companyId: Int!
+  title: String!
+  description: String!
+  category: String
+  status: String
+  location: String
+  minSalary: Int
+  maxSalary: Int
+  employmentType: String
+  skillsRequired: String
+  latitude: Float
+  longitude: Float
+  startsAt: String
+  endsAt: String
+}
+
+input UpdateJobInput {
+  title: String
+  description: String
+  category: String
+  status: String
+  location: String
+  minSalary: Int
+  maxSalary: Int
+  employmentType: String
+  skillsRequired: String
+}
+
+input CreateSlotInput {
+  jobId: Int!
+  candidateId: Int
+  startsAt: String!
+  endsAt: String!
+}

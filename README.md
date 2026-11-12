@@ -233,4 +233,3 @@ See [`docs/ADR.md`](docs/ADR.md) for the full Architecture Decision Record and
 | `/api/v1/slots` | POST | Auth | Book a slot |
 | `/api/v1/companies` | GET | No | List companies |
 | `/api/v1/applications` | POST | CANDIDATE | Submit application |
- 

@@ -1,0 +1,958 @@
+openapi: 3.1.0
+info:
+  title: Job Portal API
+  description: |
+    Production-grade Job Portal REST API. Exposes job listings, company profiles,
+    candidate management, geospatial job search, and interview scheduling.
+
+    **Demo credentials:** `username: demo` / `password: demo-password`
+  version: 1.0.0
+  contact:
+    name: APIBP004 Team
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: Auth
+    description: Authentication — token issuance and registration
+  - name: Jobs
+    description: Job listing management — List, Map, and Calendar APIs
+  - name: Companies
+    description: Company profiles
+  - name: Candidates
+    description: Candidate profiles
+  - name: Applications
+    description: Job application workflow
+  - name: Slots
+    description: Interview scheduling — Calendar API
+
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check
+      description: Returns service health status. Always public.
+      tags: [Auth]
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/v1/auth/token:
+    post:
+      operationId: issueToken
+      summary: Issue a JWT token (demo account)
+      description: |
+        Accepts `username`+`password` or `email`+`password`.
+        The evaluator uses `{"username":"demo","password":"demo-password"}`.
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+            example:
+              username: demo
+              password: demo-password
+      responses:
+        '200':
+          description: Token issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/auth/login:
+    post:
+      operationId: login
+      summary: Login with email and password
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/auth/register:
+    post:
+      operationId: register
+      summary: Register a new user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /api/v1/jobs:
+    get:
+      operationId: listJobs
+      summary: List jobs with filtering, sorting, and cursor pagination
+      description: |
+        Returns a paginated list of jobs. Uses **cursor-based (keyset) pagination**
+        via `after` and `limit`. Each response includes `has_more` and `next_cursor`.
+      tags: [Jobs]
+      parameters:
+        - $ref: '#/components/parameters/StatusParam'
+        - $ref: '#/components/parameters/CategoryParam'
+        - $ref: '#/components/parameters/MinPriceParam'
+        - $ref: '#/components/parameters/MaxPriceParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/OrderParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/AfterParam'
+      responses:
+        '200':
+          description: Paginated job list
+          headers:
+            RateLimit-Limit:
+              $ref: '#/components/headers/RateLimitLimit'
+            RateLimit-Remaining:
+              $ref: '#/components/headers/RateLimitRemaining'
+            RateLimit-Reset:
+              $ref: '#/components/headers/RateLimitReset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobListResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      operationId: createJob
+      summary: Create a job posting
+      tags: [Jobs]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateJobRequest'
+      responses:
+        '201':
+          description: Job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /api/v1/jobs/{id}:
+    get:
+      operationId: getJob
+      summary: Get a job by ID
+      tags: [Jobs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Job found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      operationId: updateJob
+      summary: Update a job posting
+      tags: [Jobs]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateJobRequest'
+      responses:
+        '200':
+          description: Job updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteJob
+      summary: Delete a job posting
+      tags: [Jobs]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Job deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/jobs/map:
+    get:
+      operationId: jobsMap
+      summary: Geospatial job search (Map API)
+      description: |
+        Find jobs by proximity or bounding box.
+
+        **Radius search:** provide `latitude`, `longitude`, `radius_km`.
+
+        **Bounding box:** provide `min_lat`, `min_lon`, `max_lat`, `max_lon`.
+
+        Coordinates follow GeoJSON convention: position = `[longitude, latitude]`.
+      tags: [Jobs]
+      parameters:
+        - name: latitude
+          in: query
+          schema:
+            type: number
+            format: double
+          description: Center point latitude (decimal degrees)
+        - name: longitude
+          in: query
+          schema:
+            type: number
+            format: double
+          description: Center point longitude (decimal degrees)
+        - name: radius_km
+          in: query
+          schema:
+            type: number
+            format: double
+          description: Search radius in kilometres
+        - name: min_lat
+          in: query
+          schema:
+            type: number
+            format: double
+        - name: min_lon
+          in: query
+          schema:
+            type: number
+            format: double
+        - name: max_lat
+          in: query
+          schema:
+            type: number
+            format: double
+        - name: max_lon
+          in: query
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: GeoJSON FeatureCollection of matching jobs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeoJSONFeatureCollection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v1/slots:
+    get:
+      operationId: listSlots
+      summary: List interview slots in a time window (Calendar API)
+      tags: [Slots]
+      parameters:
+        - name: starts_at
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Window start in ISO 8601 UTC (e.g. 2026-12-01T09:00:00Z)
+          example: "2026-12-01T09:00:00Z"
+        - name: ends_at
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Window end in ISO 8601 UTC
+          example: "2026-12-31T23:59:59Z"
+      responses:
+        '200':
+          description: List of interview slots in the window
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InterviewSlot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    post:
+      operationId: createSlot
+      summary: Book an interview slot
+      description: |
+        Books a slot. Returns **409 Conflict** with `code: SLOT_CONFLICT`
+        if the time window overlaps with an existing slot for the same job.
+      tags: [Slots]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSlotRequest'
+      responses:
+        '201':
+          description: Slot created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterviewSlot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Scheduling conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+              example:
+                code: SLOT_CONFLICT
+                message: A slot for this job already exists in the requested time window
+                status: 409
+
+  /api/v1/slots/{id}:
+    delete:
+      operationId: deleteSlot
+      summary: Cancel an interview slot
+      tags: [Slots]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Slot cancelled
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/companies:
+    get:
+      operationId: listCompanies
+      summary: List companies
+      tags: [Companies]
+      parameters:
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/AfterParam'
+      responses:
+        '200':
+          description: Company list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Company'
+
+  /api/v1/applications:
+    post:
+      operationId: applyForJob
+      summary: Submit a job application
+      tags: [Applications]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApplicationRequest'
+      responses:
+        '201':
+          description: Application submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Use POST /api/v1/auth/token to obtain a token"
+
+  headers:
+    RateLimitLimit:
+      description: Maximum number of requests allowed per window
+      schema:
+        type: integer
+        example: 60
+    RateLimitRemaining:
+      description: Remaining requests in the current window
+      schema:
+        type: integer
+        example: 42
+    RateLimitReset:
+      description: Unix epoch seconds when the window resets
+      schema:
+        type: integer
+        example: 1734000060
+
+  parameters:
+    StatusParam:
+      name: status
+      in: query
+      schema:
+        type: string
+        enum: [OPEN, CLOSED, DRAFT]
+      description: Filter by job status
+    CategoryParam:
+      name: category
+      in: query
+      schema:
+        type: string
+      description: Filter by job category (e.g. Technology, Finance)
+    MinPriceParam:
+      name: min_price
+      in: query
+      schema:
+        type: integer
+      description: Minimum salary filter (inclusive)
+    MaxPriceParam:
+      name: max_price
+      in: query
+      schema:
+        type: integer
+      description: Maximum salary filter (inclusive)
+    SortParam:
+      name: sort
+      in: query
+      schema:
+        type: string
+        default: createdAt
+      description: "Field to sort by: createdAt, title, minSalary"
+    OrderParam:
+      name: order
+      in: query
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+      description: Sort direction
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      description: Number of results per page
+    AfterParam:
+      name: after
+      in: query
+      schema:
+        type: string
+      description: Opaque cursor from previous page's `next_cursor`
+
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+          example: ok
+        service:
+          type: string
+          example: job-portal-api
+
+    TokenRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: demo
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          example: demo-password
+
+    TokenResponse:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+        message:
+          type: string
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    RegisterRequest:
+      type: object
+      required: [email, password, role]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        role:
+          type: string
+          enum: [CANDIDATE, COMPANY]
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        userId:
+          type: integer
+        message:
+          type: string
+
+    Job:
+      type: object
+      required: [id, title, status]
+      properties:
+        id:
+          type: integer
+        companyId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          example: Technology
+        status:
+          type: string
+          enum: [OPEN, CLOSED, DRAFT]
+        location:
+          type: string
+        minSalary:
+          type: integer
+        maxSalary:
+          type: integer
+        salaryRange:
+          type: string
+          deprecated: true
+          description: "Deprecated: use minSalary and maxSalary"
+        employmentType:
+          type: string
+          enum: [Full-time, Part-time, Contract, Internship]
+        skillsRequired:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    JobListResponse:
+      type: object
+      required: [data, has_more]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Job'
+        has_more:
+          type: boolean
+        next_cursor:
+          type: string
+          description: Opaque cursor to pass as `after` for the next page
+        total_count:
+          type: integer
+
+    GeoJSONFeatureCollection:
+      type: object
+      required: [type, features]
+      properties:
+        type:
+          type: string
+          enum: [FeatureCollection]
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeoJSONFeature'
+
+    GeoJSONFeature:
+      type: object
+      required: [type, geometry, properties]
+      properties:
+        type:
+          type: string
+          enum: [Feature]
+        geometry:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [Point]
+            coordinates:
+              type: array
+              items:
+                type: number
+              minItems: 2
+              maxItems: 2
+              description: "[longitude, latitude] — GeoJSON convention"
+        properties:
+          $ref: '#/components/schemas/Job'
+
+    Company:
+      type: object
+      required: [id, companyName]
+      properties:
+        id:
+          type: integer
+        companyName:
+          type: string
+        industry:
+          type: string
+        address:
+          type: string
+        approved:
+          type: boolean
+
+    Application:
+      type: object
+      required: [id, candidateId, jobId, status]
+      properties:
+        id:
+          type: integer
+        candidateId:
+          type: integer
+        jobId:
+          type: integer
+        status:
+          type: string
+          enum: [SUBMITTED, REVIEWED, SHORTLISTED, REJECTED, HIRED]
+        appliedAt:
+          type: string
+          format: date-time
+
+    InterviewSlot:
+      type: object
+      required: [id, jobId, startsAt, endsAt, status]
+      properties:
+        id:
+          type: integer
+        jobId:
+          type: integer
+        candidateId:
+          type: integer
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [SCHEDULED, COMPLETED, CANCELLED]
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateJobRequest:
+      type: object
+      required: [companyId, title, description]
+      properties:
+        companyId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        status:
+          type: string
+          enum: [OPEN, CLOSED, DRAFT]
+          default: OPEN
+        location:
+          type: string
+        minSalary:
+          type: integer
+        maxSalary:
+          type: integer
+        employmentType:
+          type: string
+        skillsRequired:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+
+    UpdateJobRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        status:
+          type: string
+        location:
+          type: string
+        minSalary:
+          type: integer
+        maxSalary:
+          type: integer
+        employmentType:
+          type: string
+        skillsRequired:
+          type: string
+
+    CreateSlotRequest:
+      type: object
+      required: [jobId, startsAt, endsAt]
+      properties:
+        jobId:
+          type: integer
+        candidateId:
+          type: integer
+        startsAt:
+          type: string
+          format: date-time
+          example: "2026-12-10T10:00:00Z"
+        endsAt:
+          type: string
+          format: date-time
+          example: "2026-12-10T11:00:00Z"
+
+    CreateApplicationRequest:
+      type: object
+      required: [jobId]
+      properties:
+        jobId:
+          type: integer
+
+    DomainError:
+      type: object
+      required: [code, message, status]
+      properties:
+        code:
+          type: string
+          enum:
+            - RESOURCE_NOT_FOUND
+            - JOB_NOT_FOUND
+            - COMPANY_NOT_FOUND
+            - VALIDATION_ERROR
+            - UNAUTHORIZED
+            - FORBIDDEN
+            - DUPLICATE_RESOURCE
+            - APPLICATION_EXISTS
+            - SLOT_CONFLICT
+            - RATE_LIMITED
+            - INVALID_CREDENTIALS
+            - INVALID_TOKEN
+            - INVALID_DATE_RANGE
+            - SALARY_RANGE_INVALID
+            - INTERNAL_ERROR
+        message:
+          type: string
+        status:
+          type: integer
+
+  responses:
+    BadRequest:
+      description: Bad request — validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DomainError'
+          example:
+            code: VALIDATION_ERROR
+            message: "Request body is invalid"
+            status: 400
+
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DomainError'
+          example:
+            code: UNAUTHORIZED
+            message: "Authentication token is missing or invalid"
+            status: 401
+
+    Forbidden:
+      description: Authenticated but insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DomainError'
+          example:
+            code: FORBIDDEN
+            message: "You do not have permission to perform this action"
+            status: 403
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DomainError'
+          example:
+            code: RESOURCE_NOT_FOUND
+            message: "The requested resource was not found"
+            status: 404
+
+    Conflict:
+      description: Conflict — resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DomainError'
+          example:
+            code: DUPLICATE_RESOURCE
+            message: "A resource with this identifier already exists"
+            status: 409
+
+    UnprocessableEntity:
+      description: Business rule violation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DomainError'
+          example:
+            code: SALARY_RANGE_INVALID
+            message: "minSalary must be less than maxSalary"
+            status: 422
+
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+        Retry-After:
+          description: Seconds until the rate limit resets
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DomainError'
+          example:
+            code: RATE_LIMITED
+            message: "Too many requests. Please wait before retrying."
+            status: 429

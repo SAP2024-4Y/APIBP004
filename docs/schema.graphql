@@ -1,0 +1,213 @@
+"""
+Job Portal API — GraphQL Schema (SDL)
+Approach A: REST-First + GraphQL Layer
+"""
+
+scalar DateTime
+
+type Query {
+  """
+  Paginated, filterable job list.
+  Uses the Relay Connection spec for cursor-based pagination.
+  """
+  jobs(
+    first: Int
+    after: String
+    status: String
+    category: String
+    minPrice: Int
+    maxPrice: Int
+    sort: String
+    order: String
+  ): JobConnection!
+
+  "Fetch a single job by its ID."
+  job(id: ID!): Job
+
+  "Paginated company list."
+  companies(first: Int, after: String): CompanyConnection!
+
+  "Fetch a single company by ID."
+  company(id: ID!): Company
+
+  "Geospatial proximity search — returns jobs within radius_km of the given point."
+  jobsNear(latitude: Float!, longitude: Float!, radiusKm: Float!): [Job!]!
+
+  "Jobs within a bounding box (GeoJSON convention: [longitude, latitude])."
+  jobsInBox(minLat: Float!, minLon: Float!, maxLat: Float!, maxLon: Float!): [Job!]!
+
+  "Interview slots overlapping the given time window (ISO 8601 UTC strings)."
+  slots(startsAt: String, endsAt: String): [InterviewSlot!]!
+
+  "All applications for the authenticated user."
+  myApplications: [Application!]!
+}
+
+type Mutation {
+  "Create a new job posting. Requires COMPANY role."
+  createJob(input: CreateJobInput!): Job!
+
+  "Update an existing job. Requires COMPANY role."
+  updateJob(id: ID!, input: UpdateJobInput!): Job!
+
+  "Delete a job. Requires COMPANY role."
+  deleteJob(id: ID!): Boolean!
+
+  "Book an interview slot. Returns SLOT_CONFLICT error if the window overlaps."
+  createSlot(input: CreateSlotInput!): InterviewSlot!
+
+  "Cancel an interview slot by ID."
+  cancelSlot(id: ID!): Boolean!
+
+  "Authenticate and obtain a JWT token."
+  login(username: String!, password: String!): AuthPayload!
+
+  "Submit a job application. Requires CANDIDATE role."
+  applyForJob(jobId: ID!): Application!
+}
+
+# ── Core business types ─────────────────────────────────────────────────────
+
+type Job {
+  id: ID!
+  title: String!
+  description: String
+  category: String
+  status: String!
+  location: String
+  minSalary: Int
+  maxSalary: Int
+
+  "Deprecated: use minSalary and maxSalary for structured salary data."
+  salaryRange: String @deprecated(reason: "Use minSalary and maxSalary instead")
+
+  employmentType: String
+  skillsRequired: String
+  latitude: Float
+  longitude: Float
+  startsAt: String
+  endsAt: String
+  createdAt: String
+
+  "The company that posted this job. Batch-loaded to prevent N+1 queries."
+  company: Company
+
+  "Applications submitted for this job."
+  applications: [Application!]
+}
+
+type Company {
+  id: ID!
+  companyName: String!
+  industry: String
+  address: String
+  approved: Boolean!
+  "All jobs posted by this company."
+  jobs: [Job!]
+}
+
+type Candidate {
+  id: ID!
+  fullName: String!
+  phone: String
+  location: String
+  experience: String
+}
+
+type Application {
+  id: ID!
+  candidateId: Int!
+  jobId: Int!
+  status: String!
+  appliedAt: String
+  "The job this application is for."
+  job: Job
+}
+
+type InterviewSlot {
+  id: ID!
+  jobId: Int!
+  candidateId: Int
+  startsAt: String!
+  endsAt: String!
+  status: String!
+  createdAt: String
+}
+
+# ── Pagination (Relay Connection spec) ──────────────────────────────────────
+
+type JobConnection {
+  edges: [JobEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int
+}
+
+type JobEdge {
+  node: Job!
+  cursor: String!
+}
+
+type CompanyConnection {
+  edges: [CompanyEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int
+}
+
+type CompanyEdge {
+  node: Company!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+# ── Auth ─────────────────────────────────────────────────────────────────────
+
+type AuthPayload {
+  token: String!
+  email: String
+  role: String
+  userId: Int
+}
+
+# ── Input types ──────────────────────────────────────────────────────────────
+
+input CreateJobInput {
+  companyId: Int!
+  title: String!
+  description: String!
+  category: String
+  status: String
+  location: String
+  minSalary: Int
+  maxSalary: Int
+  employmentType: String
+  skillsRequired: String
+  latitude: Float
+  longitude: Float
+  startsAt: String
+  endsAt: String
+}
+
+input UpdateJobInput {
+  title: String
+  description: String
+  category: String
+  status: String
+  location: String
+  minSalary: Int
+  maxSalary: Int
+  employmentType: String
+  skillsRequired: String
+}
+
+input CreateSlotInput {
+  jobId: Int!
+  candidateId: Int
+  startsAt: String!
+  endsAt: String!
+}

@@ -1,0 +1,8 @@
+# CI override: PostgreSQL stays internal; Docker assigns an unused API host port.
+# Requires Docker Compose 2.24.4+ for !override.
+services:
+  postgres:
+    ports: !reset []
+  backend:
+    ports: !override
+      - "127.0.0.1::8080"

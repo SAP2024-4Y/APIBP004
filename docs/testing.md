@@ -52,3 +52,15 @@ The separate [executable walkthrough](api-walkthrough.md) uses the actual packag
 .github/workflows/ci.yml runs on pull_request and main pushes with read-only repository permissions. Java 21 and PostgreSQL 15 run the regression suites. A separate job builds the Docker Compose stack and runs the same Python walkthrough. Reports and stack logs are uploaded even when a job fails; the disposable stack is removed in an always step. No user credentials or repository secrets are needed.
 
 Check the failed test name in the uploaded Surefire reports, or the failing HTTP step and Compose logs for walkthrough failures. The default per-IP quota is 60 requests/minute; integration test contexts raise/mock it where needed, while the walkthrough honors Retry-After without disabling the real filter. Shared-IP activity may require waiting before another run. JVM/Mockito warnings and delayed Surefire shutdown messages should be distinguished from the Maven exit status and reported test failures.
+
+
+Walkthrough readiness regressions can be run without a server:
+
+~~~sh
+python3 -m unittest discover -s scripts/tests -v
+~~~
+
+They verify startup disconnect retries, the readiness deadline, and that failed writes are not automatically retried. The upload integration test checks the JSON 413 response for both file-limit and request-limit violations. Tomcat may discard up to 8 MiB of a rejected request so the client can receive that response; accepted upload limits remain 5 MiB per file and 6 MiB per multipart request. Requests beyond the discard budget may have their connection closed.
+
+
+The CI walkthrough combines docker-compose.yml with compose.ci.yml (Compose 2.24.4+). PostgreSQL has no host port; the backend reaches it on the Compose network. Docker assigns an unused loopback port for the API, which the workflow discovers with docker compose port backend 8080. Each run/attempt uses a distinct project name, avoiding fixed container and port collisions. Normal local Compose defaults are unchanged.

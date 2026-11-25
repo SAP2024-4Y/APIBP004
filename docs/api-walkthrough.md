@@ -11,7 +11,7 @@ DB_PORT=55444 API_PORT=18080 docker compose -p jobportal-walkthrough up --build 
 python3 scripts/api-walkthrough.py --base-url http://localhost:18080 --wait-seconds 180
 ~~~
 
-The script waits for /health and then prints PASS for each verified request. Any unexpected status, application error code, missing record, GraphQL error, or mismatched comparison exits nonzero. JWTs and passwords are kept in process memory and never printed. No pip install is required.
+The script retries temporary connection resets, connection refusals, and incomplete HTTP responses from the read-only /health check until its startup deadline, then prints PASS for each verified request. Any unexpected status, application error code, missing record, GraphQL error, or mismatched comparison exits nonzero. JWTs and passwords are kept in process memory and never printed. No pip install is required.
 
 The demo ADMIN uses username demo and password demo-password. If that seeded account's password was changed, supply WALKTHROUGH_ADMIN_USERNAME and WALKTHROUGH_ADMIN_PASSWORD through environment variables. Public registration is used only for COMPANY and CANDIDATE; it cannot create an ADMIN. Demo seeding must be enabled and email delivery disabled, as in the default Compose configuration.
 

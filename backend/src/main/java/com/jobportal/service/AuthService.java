@@ -3,6 +3,7 @@ package com.jobportal.service;
 import com.jobportal.entity.User;
 import com.jobportal.exception.DuplicateResourceException;
 import com.jobportal.exception.UnauthorizedException;
+import com.jobportal.exception.ValidationException;
 import com.jobportal.repository.UserRepository;
 import com.jobportal.security.JwtUtil;
 import com.jobportal.security.dto.AuthResponse;
@@ -27,6 +28,11 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+        if (request.getRole() != User.Role.CANDIDATE && request.getRole() != User.Role.COMPANY) {
+            throw new ValidationException(
+                    "Public registration only supports CANDIDATE and COMPANY roles");
+        }
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email already registered");
         }

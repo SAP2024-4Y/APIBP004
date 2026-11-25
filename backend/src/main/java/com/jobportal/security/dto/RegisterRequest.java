@@ -1,6 +1,7 @@
 package com.jobportal.security.dto;
 
 import com.jobportal.entity.User;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,6 +20,9 @@ public class RegisterRequest {
     private String password;
 
     @NotNull(message = "Role is required")
+    @Schema(description = "Public registration role. ADMIN accounts cannot be created through this endpoint.",
+            implementation = String.class,
+            allowableValues = {"CANDIDATE", "COMPANY"})
     private User.Role role;
 }
 

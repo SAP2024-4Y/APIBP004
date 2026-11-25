@@ -1,0 +1,3 @@
+mutation ReserveInterview($input: CreateSlotInput!) {
+  createSlot(input: $input) { id jobId candidateId startsAt endsAt status }
+}

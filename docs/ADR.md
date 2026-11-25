@@ -21,7 +21,7 @@ analytics dashboards that use GraphQL to fetch composite views in a single round
 ## 2. Business Capabilities
 
 1. **Job Discovery** — candidates can find jobs filtered by category, salary range, location,
-   employment type, and status; results support both keyword search and radius-based
+   skills, and status; results support both keyword search and radius-based
    geospatial queries.
 2. **Geospatial Matching** — companies broadcast their office coordinates; candidates can
    search within a radius or bounding box, enabling commute-aware job hunting.
@@ -82,54 +82,53 @@ non-overlapping `[startsAt, endsAt)` windows per job, returning HTTP 409 on conf
 
 ---
 
-## 6. Composite Payload Comparison
+## 6. Equivalent REST and GraphQL Views
 
-**Scenario:** Fetch a job with its company name and all interview slots.
+Scenario: fetch a job's ID/title/company name and every interview slot overlapping the same UTC window. Slots are a top-level query; neither transport supports a job_id calendar filter. Filter the returned slots by jobId in the client if the view requires only that job.
 
-**REST — 2 round-trips:**
-```
-GET /api/v1/jobs/5          → 312 bytes (job object, no company name, no slots)
-GET /api/v1/slots?job_id=5  → 487 bytes (slot list)
-Total: 2 round-trips, ~799 bytes payload
-```
+REST uses three requests with IDs captured from previous responses:
 
-**GraphQL — 1 round-trip:**
-```graphql
-query {
-  job(id: "5") {
-    title status location minSalary maxSalary
-    company { companyName industry }
-    applications { status }
-  }
+~~~text
+GET /api/v1/jobs/{jobId}
+GET /api/v1/companies/{companyId}     # companyId from the job response
+GET /api/v1/slots?starts_at=2030-01-10T10:00:00Z&ends_at=2030-01-10T11:00:00Z
+~~~
+
+GraphQL uses one request with the same job ID and window:
+
+~~~graphql
+query JobAndCalendar($id: ID!, $start: String!, $end: String!) {
+  job(id: $id) { id title company { id companyName } }
+  slots(startsAt: $start, endsAt: $end) { id jobId startsAt endsAt status }
 }
-```
-Response: ~490 bytes — no over-fetch of unused fields, single request.
+~~~
 
-GraphQL saves one network round-trip and 39% bytes for this composite view. The DataLoader
-batch-loads all company references in a single SQL query, so the GraphQL resolver issues
-exactly 2 SQL statements regardless of how many jobs are in the result set.
+The executable query is [examples/job-and-calendar.graphql](examples/job-and-calendar.graphql). The [walkthrough](api-walkthrough.md) executes both forms and compares their shared fields and slot sets. Request counts describe these specific APIs; no payload-size or fixed SQL-count claim is made. DataLoader batches company references when those fields are requested, while actual database work depends on query shape, pagination, authorization, and caches.
 
 ---
 
 ## 7. Error Catalogue
 
-| Code | Cause | HTTP Status | GraphQL extensions.code |
-|---|---|---|---|
-| `RESOURCE_NOT_FOUND` | Generic resource not found | 404 | RESOURCE_NOT_FOUND |
-| `JOB_NOT_FOUND` | Job ID does not exist | 404 | JOB_NOT_FOUND |
-| `COMPANY_NOT_FOUND` | Company ID does not exist | 404 | COMPANY_NOT_FOUND |
-| `VALIDATION_ERROR` | Request body fails bean validation | 400 | VALIDATION_ERROR |
-| `UNAUTHORIZED` | Missing or expired JWT token | 401 | UNAUTHORIZED |
-| `FORBIDDEN` | Token valid but role insufficient | 403 | FORBIDDEN |
-| `DUPLICATE_RESOURCE` | Email already registered / duplicate key | 409 | DUPLICATE_RESOURCE |
-| `APPLICATION_EXISTS` | Candidate already applied for this job | 409 | APPLICATION_EXISTS |
-| `SLOT_CONFLICT` | Interview slot overlaps with existing booking | 409 | SLOT_CONFLICT |
-| `RATE_LIMITED` | Too many requests in the current window | 429 | RATE_LIMITED |
-| `INVALID_CREDENTIALS` | Username/password mismatch at login | 401 | INVALID_CREDENTIALS |
-| `INVALID_TOKEN` | JWT signature invalid or malformed | 401 | INVALID_TOKEN |
-| `INVALID_DATE_RANGE` | `ends_at` before `starts_at` | 422 | INVALID_DATE_RANGE |
-| `SALARY_RANGE_INVALID` | `min_price` greater than `max_price` | 422 | SALARY_RANGE_INVALID |
-| `INTERNAL_ERROR` | Unhandled server exception | 500 | INTERNAL_ERROR |
+REST returns the shared error body; GraphQL business failures generally use HTTP 200 and errors[].extensions.code. Authentication/rate-limit filters can return transport-level errors before GraphQL execution.
+
+| Code | REST status | Cause |
+| --- | --- | --- |
+| RESOURCE_NOT_FOUND | 404 | Missing resource or related profile |
+| VALIDATION_ERROR | 400 | Invalid fields, coordinates, salary bounds, or dates |
+| INVALID_REQUEST | 400 | Malformed JSON, invalid type, or enum |
+| UNAUTHORIZED | 401 | Missing/invalid authentication or incorrect login |
+| FORBIDDEN | 403 | Role or ownership does not permit the operation |
+| DUPLICATE_RESOURCE | 409 | Existing email or candidate/job application |
+| SLOT_CONFLICT | 409 | Same-job reservation overlaps |
+| APPLICATION_CONFLICT | 409 | Job not OPEN on submission or invalid status transition |
+| DATA_INTEGRITY_ERROR | 400 | Database constraints reject the operation |
+| PAYLOAD_TOO_LARGE | 413 | Resume or multipart request exceeds its limit |
+| UNSUPPORTED_MEDIA_TYPE | 415 | Wrong request content type |
+| METHOD_NOT_ALLOWED | 405 | Unsupported HTTP method |
+| RATE_LIMITED | 429 | Per-IP quota exceeded; Retry-After is returned |
+| INTERNAL_ERROR | 500 | Unexpected server failure |
+
+See [API contracts](api-contracts.md) and the per-operation Swagger responses for exact messages and applicable codes. GraphQL validation errors generated by the GraphQL engine may not have an application error code.
 
 ---
 
@@ -137,13 +136,11 @@ exactly 2 SQL statements regardless of how many jobs are in the result set.
 
 **Decision 1 — Cursor-based pagination over offset pagination.**
 We rejected `page`/`size` offset pagination because concurrent inserts cause page drift.
-Keyset pagination on a stable primary key eliminates this; the opaque cursor can change
-implementation without breaking clients.
+Sort-aware keyset pagination uses an ID tie-breaker for deterministic traversal of unchanged data. Concurrent edits can still move records across pages; cursors are versioned and unsupported versions must restart from the first page.
 
 **Decision 2 — Haversine in-memory over PostGIS.**
 PostGIS adds a DB extension that complicates Docker and CI. We pre-filter a SQL bounding
-box then apply Haversine in Java — accurate to within 0.5% for city-scale queries with no
-heavyweight dependency.
+box then apply spherical Haversine distance in Java with Earth radius 6371 km. This is straight-line distance, not travel distance.
 
 **Decision 3 — DataLoader for GraphQL N+1 prevention.**
 A naive resolver for 20 jobs with `company` fields would issue 21 SQL queries. The
@@ -171,8 +168,7 @@ registered per request to avoid cross-user cache pollution.
 1. **Reduced time-to-hire** — the Map API lets candidates filter jobs by commute radius,
    reducing irrelevant applications and shortening the recruiter's review queue.
 
-2. **Zero double-booking** — server-side slot conflict prevention eliminates manual
-   availability checks, reducing scheduling errors and no-shows.
+2. **Same-job conflict prevention** — service writes serialize overlapping reservations for a job; cross-job candidate conflicts are not checked.
 
 3. **Ecosystem extensibility** — REST and GraphQL together serve mobile apps, web clients,
    and aggregators in the style each prefers, without duplicating business logic.

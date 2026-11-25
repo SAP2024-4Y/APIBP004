@@ -1,0 +1,4 @@
+query JobAndCalendar($id: ID!, $start: String!, $end: String!) {
+  job(id: $id) { id title company { id companyName } }
+  slots(startsAt: $start, endsAt: $end) { id jobId startsAt endsAt status }
+}

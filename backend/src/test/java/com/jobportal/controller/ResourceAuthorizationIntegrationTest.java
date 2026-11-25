@@ -29,9 +29,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-        "spring.datasource.url=jdbc:h2:mem:authorization;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
-        "spring.datasource.driver-class-name=org.h2.Driver",
-        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
+        "spring.datasource.url=$" + "{authorization.test.jdbc-url:jdbc:h2:mem:authorization;MODE=PostgreSQL;DB_CLOSE_DELAY=-1}",
+        "spring.datasource.driver-class-name=$" + "{authorization.test.driver:org.h2.Driver}",
+        "spring.datasource.username=$" + "{authorization.test.username:sa}",
+        "spring.datasource.password=$" + "{authorization.test.password:}",
+        "spring.jpa.properties.hibernate.dialect=$" + "{authorization.test.dialect:org.hibernate.dialect.H2Dialect}",
         "spring.jpa.hibernate.ddl-auto=validate", "spring.jpa.show-sql=false",
         "logging.level.org.hibernate.SQL=OFF", "app.email.enabled=false"
 })

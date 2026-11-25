@@ -9,7 +9,7 @@ Related issues are grouped into seven pull requests, including the merged regist
 | 3 | Merged as PR #36 — API contracts: Swagger/OpenAPI and GraphQL schema consistency, descriptions, examples, validation, errors, resume handling, and rate-limit documentation | #6, #7, #8, #9, #10, #11, #16, #30, #31 |
 | 4 | Merged as PR #37 — Database schema, entity documentation, valid seed relationships, and bulk data | #12, #13, #14, #15 |
 | 5 | Merged as PR #38 — Job fields, salary semantics, filtering, pagination, and geographic search | #17, #18, #19, #20, #21, #22, #29 |
-| 6 | UTC timestamps, scheduling rules, and application lifecycle | #23, #24, #28 |
+| 6 | Merged as PR #39 — UTC timestamps, scheduling rules, and application lifecycle | #23, #24, #28 |
 | 7 | CI, remaining contract coverage, and executable API walkthrough | #32, #33 |
 
 Create each branch from the updated main branch after the preceding PR is merged. A PR closes an issue only when its acceptance criteria are satisfied. Supporting changes in an earlier PR may contribute to an issue without closing it.
@@ -127,3 +127,22 @@ Validation: 108 tests passed with zero failures, errors, or skips under Asia/Kol
 Closes #23
 Closes #24
 Closes #28
+
+## PR 7
+
+Title: **Add API regression CI and an executable role-based walkthrough**
+
+Branch: ci/api-regression-and-walkthrough
+
+Description:
+
+Add GitHub Actions checks for pull requests and main pushes. CI builds with Java 21, runs the full H2 suite, and runs five regression suites against isolated PostgreSQL 15 databases. The PostgreSQL setup and runner are also available locally through compose.test.yml and scripts/test-postgres.sh. API contract tests now check every internal OpenAPI reference, request examples, and runtime GraphQL field/argument/input types as well as existing route and snapshot checks.
+
+A separate CI job builds the Docker Compose demo stack and executes scripts/api-walkthrough.py. The walkthrough registers synthetic COMPANY/CANDIDATE accounts, creates profiles and a job, performs administrative approval, verifies search/pagination and the 5 km GraphQL query, submits/reviews an application, schedules an interview, and checks representative errors. Tokens and IDs come from responses. Checked-in GraphQL operation files are executed directly, and shared REST/GraphQL results are compared. The walkthrough respects rate limits and does not print tokens or passwords.
+
+README and ADR now describe implemented test commands, supported filters, role requirements, and equivalent REST/GraphQL calendar examples. Remove the nonexistent integration-test profile, unsupported job_id calendar filter, stale error codes, and unmeasured payload/SQL-count claims. CI uploads reports/logs and removes its disposable demo stack.
+
+Validation: 109 full-suite tests passed with Maven verify under Asia/Kolkata; all 67 selected PostgreSQL tests passed under America/New_York. The Java 21 Docker build and all 36 walkthrough HTTP checks plus response assertions passed. actionlint 1.7.7 reported no workflow errors. Maven returned BUILD SUCCESS despite delayed Surefire fork shutdown warnings. GitHub-hosted execution remains to be verified after pushing. Local commands and expected behavior are in docs/testing.md and docs/api-walkthrough.md.
+
+Closes #32
+Closes #33

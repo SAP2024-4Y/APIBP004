@@ -32,9 +32,11 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-        "spring.datasource.url=jdbc:h2:mem:contracts;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
-        "spring.datasource.driver-class-name=org.h2.Driver",
-        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
+        "spring.datasource.url=$" + "{contract.test.jdbc-url:jdbc:h2:mem:contracts;MODE=PostgreSQL;DB_CLOSE_DELAY=-1}",
+        "spring.datasource.driver-class-name=$" + "{contract.test.driver:org.h2.Driver}",
+        "spring.datasource.username=$" + "{contract.test.username:sa}",
+        "spring.datasource.password=$" + "{contract.test.password:}",
+        "spring.jpa.properties.hibernate.dialect=$" + "{contract.test.dialect:org.hibernate.dialect.H2Dialect}",
         "spring.jpa.hibernate.ddl-auto=validate", "spring.jpa.show-sql=false",
         "logging.level.org.hibernate.SQL=OFF", "app.email.enabled=false",
         "app.ratelimit.requests-per-minute=10000"
@@ -80,6 +82,7 @@ class ApiContractIntegrationTest {
 
     @Test void generatedContractMatchesSnapshotAndEveryControllerOperation() throws Exception {
         JsonNode contract = contract();
+        assertReferences(contract, contract);
         Set<String> documented = new TreeSet<>();
         contract.path("paths").fields().forEachRemaining(path -> path.getValue().fieldNames().forEachRemaining(method -> documented.add(method.toUpperCase()+" "+path.getKey())));
         Set<String> actual = new TreeSet<>();
@@ -93,6 +96,11 @@ class ApiContractIntegrationTest {
             for (String section : List.of("Use case:", "Consumers:", "Roles and ownership:", "Workflow and side effects:"))
                 assertTrue(operation.path("description").asText().contains(section), path.getKey());
             assertTrue(operation.path("responses").has("429"));
+            operation.path("requestBody").path("content").fields().forEachRemaining(media -> {
+                JsonNode definition = media.getValue();
+                if (definition.has("example")) assertSchema(contract, definition.path("schema"), definition.path("example"));
+                definition.path("examples").forEach(example -> assertSchema(contract, definition.path("schema"), example.path("value")));
+            });
             operation.path("responses").fields().forEachRemaining(response -> {
                 response.getValue().path("content").fields().forEachRemaining(media -> {
                     if (media.getKey().equals("application/json")) {
@@ -232,6 +240,57 @@ class ApiContractIntegrationTest {
             JsonNode failure=json.readTree(graphql(invalid,null).getBody());
             assertEquals("VALIDATION_ERROR",failure.at("/errors/0/extensions/code").asText(),failure.toString());
         }
+    }
+
+    @Test void runtimeGraphqlFieldTypesAndArgumentsMatchPublishedSchema() throws Exception {
+        String type = "kind name";
+        for (int depth = 0; depth < 6; depth++) type = "kind name ofType { " + type + " }";
+        String query = "{__schema{types{name fields(includeDeprecated:true){name type{" + type
+                + "} args{name type{" + type + "}}} inputFields{name type{" + type + "}}}}}";
+        JsonNode result = json.readTree(graphql(query, null).getBody());
+        assertFalse(result.has("errors"), result.toString());
+        Map<String, JsonNode> runtime = new HashMap<>();
+        result.at("/data/__schema/types").forEach(node -> runtime.put(node.path("name").asText(), node));
+        var document = new graphql.parser.Parser().parseDocument(Files.readString(Path.of("../docs/schema.graphql")));
+        for (var definition : document.getDefinitions()) {
+            if (definition instanceof graphql.language.ObjectTypeDefinition object) {
+                JsonNode actual = runtime.get(object.getName()); assertNotNull(actual, object.getName());
+                Map<String, JsonNode> fields = new TreeMap<>();
+                actual.path("fields").forEach(field -> fields.put(field.path("name").asText(), field));
+                assertEquals(object.getFieldDefinitions().stream().map(graphql.language.FieldDefinition::getName).collect(java.util.stream.Collectors.toSet()), fields.keySet());
+                for (var field : object.getFieldDefinitions()) {
+                    JsonNode found = fields.get(field.getName());
+                    assertEquals(graphql.language.AstPrinter.printAstCompact(field.getType()), graphqlType(found.path("type")), object.getName()+"."+field.getName());
+                    Map<String,String> expectedArguments = new TreeMap<>(), actualArguments = new TreeMap<>();
+                    field.getInputValueDefinitions().forEach(arg -> expectedArguments.put(arg.getName(), graphql.language.AstPrinter.printAstCompact(arg.getType())));
+                    found.path("args").forEach(arg -> actualArguments.put(arg.path("name").asText(), graphqlType(arg.path("type"))));
+                    assertEquals(expectedArguments, actualArguments);
+                }
+            } else if (definition instanceof graphql.language.InputObjectTypeDefinition input) {
+                Map<String,String> expected = new TreeMap<>(), actual = new TreeMap<>();
+                input.getInputValueDefinitions().forEach(field -> expected.put(field.getName(), graphql.language.AstPrinter.printAstCompact(field.getType())));
+                assertNotNull(runtime.get(input.getName()), input.getName());
+                runtime.get(input.getName()).path("inputFields").forEach(field -> actual.put(field.path("name").asText(), graphqlType(field.path("type"))));
+                assertEquals(expected, actual, input.getName());
+            }
+        }
+    }
+
+    private String graphqlType(JsonNode type) {
+        return switch (type.path("kind").asText()) {
+            case "NON_NULL" -> graphqlType(type.path("ofType")) + "!";
+            case "LIST" -> "[" + graphqlType(type.path("ofType")) + "]";
+            default -> type.path("name").asText();
+        };
+    }
+
+    private void assertReferences(JsonNode contract, JsonNode node) {
+        if (node.isObject() && node.has("$ref")) {
+            String reference = node.path("$ref").asText();
+            assertTrue(reference.startsWith("#/"), "Only checked-in internal references are supported: " + reference);
+            assertFalse(contract.at(reference.substring(1)).isMissingNode(), "Unresolved OpenAPI reference: " + reference);
+        }
+        if (node.isContainerNode()) node.forEach(child -> assertReferences(contract, child));
     }
 
     private User user(String email,User.Role role) {

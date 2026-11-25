@@ -1,0 +1,6 @@
+query NearbyJobs($latitude: Float!, $longitude: Float!, $radiusKm: Float!) {
+  jobsNear(latitude: $latitude, longitude: $longitude, radiusKm: $radiusKm) {
+    id title latitude longitude
+    company { id companyName }
+  }
+}

@@ -61,3 +61,6 @@ python3 -m unittest discover -s scripts/tests -v
 ~~~
 
 They verify startup disconnect retries, the readiness deadline, and that failed writes are not automatically retried. The upload integration test checks the JSON 413 response for both file-limit and request-limit violations. Tomcat may discard up to 8 MiB of a rejected request so the client can receive that response; accepted upload limits remain 5 MiB per file and 6 MiB per multipart request. Requests beyond the discard budget may have their connection closed.
+
+
+The CI walkthrough combines docker-compose.yml with compose.ci.yml (Compose 2.24.4+). PostgreSQL has no host port; the backend reaches it on the Compose network. Docker assigns an unused loopback port for the API, which the workflow discovers with docker compose port backend 8080. Each run/attempt uses a distinct project name, avoiding fixed container and port collisions. Normal local Compose defaults are unchanged.

@@ -82,3 +82,7 @@ build/
 .env.production
 .cache/
 .parcel-cache/
+
+# Python walkthrough test bytecode
+__pycache__/
+*.pyc

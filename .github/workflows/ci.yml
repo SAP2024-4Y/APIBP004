@@ -65,6 +65,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Check walkthrough startup and retry behavior
+        run: python3 -m unittest discover -s scripts/tests -v
       - name: Build and start demo stack
         run: docker compose up --build -d
       - name: Execute candidate, company, and admin walkthrough

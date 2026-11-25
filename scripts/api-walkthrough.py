@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Executable demo-data journey. Creates records; run only against a disposable demo API."""
 import argparse
+import http.client
 import json
 import os
 from pathlib import Path
@@ -67,7 +68,7 @@ class Api:
                 with urllib.request.urlopen(self.base + "/health", timeout=5) as response:
                     if response.status == 200:
                         return
-            except (urllib.error.URLError, TimeoutError):
+            except (urllib.error.URLError, TimeoutError, ConnectionError, http.client.HTTPException):
                 pass
             check(time.monotonic() < deadline, "API did not become healthy before the deadline")
             time.sleep(2)
@@ -170,6 +171,6 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except (RuntimeError, urllib.error.URLError, TimeoutError, KeyError, ValueError) as error:
+    except (RuntimeError, urllib.error.URLError, TimeoutError, ConnectionError, http.client.HTTPException, KeyError, ValueError) as error:
         print(f"FAIL: {error}", file=sys.stderr)
         sys.exit(1)

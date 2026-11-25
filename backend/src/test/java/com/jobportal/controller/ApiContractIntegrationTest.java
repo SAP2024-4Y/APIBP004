@@ -219,6 +219,7 @@ class ApiContractIntegrationTest {
         error(upload("resume.exe",new byte[]{1},candidate.getId()),400,"VALIDATION_ERROR");
         error(upload("resume.pdf",new byte[0],candidate.getId()),400,"VALIDATION_ERROR");
         error(upload("resume.pdf",new byte[5*1024*1024+1],candidate.getId()),413,"PAYLOAD_TOO_LARGE");
+        error(upload("resume.pdf",new byte[6*1024*1024+1],candidate.getId()),413,"PAYLOAD_TOO_LARGE");
         assertEquals(0,resumes.count());
     }
 

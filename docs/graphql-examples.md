@@ -88,7 +88,7 @@ mutation Book($jobId: Int!) {
 }
 ~~~
 
-A CANDIDATE books for their own profile. A COMPANY schedules only its jobs; ADMIN may schedule any job. Company/admin callers may supply an existing candidateId or omit it for an unassigned slot. Dates are local date-times; timezone conversion is not implemented. Same-job overlap returns SLOT_CONFLICT. No application prerequisite is currently enforced.
+A CANDIDATE books for their own profile. A COMPANY schedules only its jobs; ADMIN may schedule any job. Company/admin callers may supply an existing candidateId or omit it for an unassigned slot. Dates normalize to UTC; offset-free input means UTC and output includes Z. Same-job overlap returns SLOT_CONFLICT, including concurrent creates. Adjacent intervals are allowed. Slots are assigned or unassigned reservations; both block their interval. See [scheduling rules](scheduling-and-applications.md). No application prerequisite is currently enforced.
 
 Only the job-owning COMPANY or ADMIN can select `job { applications { id status appliedAt } }`. Unauthorized nested-field access can return partial public job data and a FORBIDDEN error. Slot candidateId is null for callers other than the assigned candidate, owning company, and ADMIN.
 

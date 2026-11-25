@@ -59,8 +59,8 @@ public class JobMutationResolver implements GraphQLMutationResolver {
         candidateId = access.slotCandidate(access.actor(env), jobId, candidateId);
         String startsAtStr = (String) input.get("startsAt");
         String endsAtStr = (String) input.get("endsAt");
-        LocalDateTime startsAt = startsAtStr != null ? LocalDateTime.parse(startsAtStr.replace("Z", "")) : null;
-        LocalDateTime endsAt = endsAtStr != null ? LocalDateTime.parse(endsAtStr.replace("Z", "")) : null;
+        LocalDateTime startsAt = com.jobportal.time.UtcTime.parse(startsAtStr);
+        LocalDateTime endsAt = com.jobportal.time.UtcTime.parse(endsAtStr);
         return slotService.createSlot(jobId, candidateId, startsAt, endsAt);
     }
 

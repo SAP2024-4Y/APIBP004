@@ -29,7 +29,7 @@ components:
     Application:
       properties:
         appliedAt:
-          description: Server-assigned local date-time of application submission.
+          description: Server-assigned UTC timestamp of application submission.
           nullable: true
           type: string
         candidateId:
@@ -258,8 +258,8 @@ components:
           pattern: FULL_TIME|PART_TIME|CONTRACT|INTERNSHIP|FREELANCE|Full-time|Part-time|Contract|Internship|Freelance
           type: string
         endsAt:
-          description: Optional job-level local date-time strictly after startsAt.
-          example: 2027-02-01T10:00:00
+          description: Optional job-level UTC timestamp strictly after startsAt.
+          example: 2027-02-01T10:00:00Z
           type: string
         latitude:
           exclusiveMaximum: false
@@ -301,9 +301,9 @@ components:
         skillsRequired:
           type: string
         startsAt:
-          description: Optional job-level local date-time. Supply both time bounds
-            on creation; does not create an interview slot.
-          example: 2027-02-01T09:00:00
+          description: Optional job-level UTC timestamp. Supply both time bounds on
+            creation; does not create an interview slot.
+          example: 2027-02-01T09:00:00Z
           type: string
         status:
           description: Defaults OPEN on creation; omitted/null preserves current value
@@ -332,16 +332,16 @@ components:
           type: integer
         endsAt:
           description: Must be later than startsAt.
-          example: 2027-01-10T10:30:00
+          example: 2027-01-10T10:30:00Z
           type: string
         jobId:
           format: int32
           minimum: 1
           type: integer
         startsAt:
-          description: ISO local date-time; trailing Z is accepted. Offset conversion
-            is not implemented.
-          example: 2027-01-10T10:00:00
+          description: "ISO 8601 timestamp; offsets normalize to UTC, offset-free\
+            \ input means UTC."
+          example: 2027-01-10T10:00:00Z
           type: string
       required:
       - endsAt
@@ -522,11 +522,11 @@ components:
           nullable: true
           type: integer
         createdAt:
-          description: Server-assigned local date-time; offset is not serialized.
+          description: Server-assigned UTC timestamp serialized with Z.
           nullable: true
           type: string
         endsAt:
-          description: Local date-time without an offset.
+          description: UTC timestamp serialized with Z.
           nullable: false
           type: string
         id:
@@ -540,7 +540,7 @@ components:
           nullable: false
           type: integer
         startsAt:
-          description: Local date-time without an offset. Job time fields are separate
+          description: UTC timestamp serialized with Z. Job time fields are separate
             from interview slots.
           nullable: false
           type: string
@@ -569,7 +569,7 @@ components:
           nullable: false
           type: integer
         createdAt:
-          description: Server-assigned local date-time; offset is not serialized.
+          description: Server-assigned UTC timestamp serialized with Z.
           nullable: true
           type: string
         description:
@@ -581,7 +581,7 @@ components:
           nullable: true
           type: string
         endsAt:
-          description: Local date-time without an offset.
+          description: UTC timestamp serialized with Z.
           nullable: true
           type: string
         id:
@@ -626,7 +626,7 @@ components:
           nullable: true
           type: string
         startsAt:
-          description: Local date-time without an offset. Job time fields are separate
+          description: UTC timestamp serialized with Z. Job time fields are separate
             from interview slots.
           nullable: true
           type: string
@@ -689,7 +689,7 @@ components:
           nullable: false
           type: integer
         createdAt:
-          description: Server-assigned local date-time; offset is not serialized.
+          description: Server-assigned UTC timestamp serialized with Z.
           nullable: true
           type: string
         description:
@@ -701,7 +701,7 @@ components:
           nullable: true
           type: string
         endsAt:
-          description: Local date-time without an offset.
+          description: UTC timestamp serialized with Z.
           nullable: true
           type: string
         id:
@@ -746,7 +746,7 @@ components:
           nullable: true
           type: string
         startsAt:
-          description: Local date-time without an offset. Job time fields are separate
+          description: UTC timestamp serialized with Z. Job time fields are separate
             from interview slots.
           nullable: true
           type: string
@@ -826,7 +826,7 @@ components:
           nullable: false
           type: integer
         uploadedAt:
-          description: Server-assigned local date-time of upload.
+          description: Server-assigned UTC timestamp of upload.
           nullable: true
           type: string
       required:
@@ -903,8 +903,8 @@ components:
           pattern: FULL_TIME|PART_TIME|CONTRACT|INTERNSHIP|FREELANCE|Full-time|Part-time|Contract|Internship|Freelance
           type: string
         endsAt:
-          description: Optional job-level local date-time strictly after startsAt.
-          example: 2027-02-01T10:00:00
+          description: Optional job-level UTC timestamp strictly after startsAt.
+          example: 2027-02-01T10:00:00Z
           type: string
         latitude:
           exclusiveMaximum: false
@@ -946,9 +946,9 @@ components:
         skillsRequired:
           type: string
         startsAt:
-          description: Optional job-level local date-time. Supply both time bounds
-            on creation; does not create an interview slot.
-          example: 2027-02-01T09:00:00
+          description: Optional job-level UTC timestamp. Supply both time bounds on
+            creation; does not create an interview slot.
+          example: 2027-02-01T09:00:00Z
           type: string
         status:
           description: Defaults OPEN on creation; omitted/null preserves current value
@@ -990,7 +990,7 @@ components:
     UserResponseDto:
       properties:
         createdAt:
-          description: Server-assigned local date-time; offset is not serialized.
+          description: Server-assigned UTC timestamp serialized with Z.
           nullable: true
           type: string
         email:
@@ -1050,7 +1050,7 @@ paths:
                   value: []
                 success:
                   value:
-                  - appliedAt: 2026-11-25T10:00:00
+                  - appliedAt: 2026-11-25T10:00:00Z
                     candidateId: 1
                     id: 1
                     jobId: 1
@@ -1180,7 +1180,7 @@ paths:
 
         Workflow and side effects: Create a candidate profile and discover an existing job first. Creates one application per candidate/job pair. status and appliedAt are assigned by the server; submitted IDs are rejected. Notification email is attempted asynchronously when configured.
 
-        Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
+        Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota. Only OPEN jobs accept new applications. Job times do not determine eligibility. ID, SUBMITTED status, and appliedAt are assigned by the service. A parent-job lock serializes duplicate submissions; duplicates return 409 DUPLICATE_RESOURCE. Closed/draft jobs return 409 APPLICATION_CONFLICT. Email notifications are best-effort and begin only after commit.
       operationId: createApplication
       requestBody:
         content:
@@ -1199,7 +1199,7 @@ paths:
               examples:
                 success:
                   value:
-                    appliedAt: 2026-11-25T10:00:00
+                    appliedAt: 2026-11-25T10:00:00Z
                     candidateId: 1
                     id: 1
                     jobId: 1
@@ -1331,6 +1331,15 @@ paths:
           content:
             application/json:
               examples:
+                APPLICATION_CONFLICT:
+                  value:
+                    code: APPLICATION_CONFLICT
+                    details: []
+                    error: Conflict
+                    message: Applications require an OPEN job
+                    path: /api/v1/applications
+                    status: 409
+                    timestamp: 2026-11-25T10:00:00Z
                 DUPLICATE_RESOURCE:
                   value:
                     code: DUPLICATE_RESOURCE
@@ -1342,7 +1351,7 @@ paths:
                     timestamp: 2026-11-25T10:00:00Z
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: A duplicate account or candidate-job application already exists.
+          description: Duplicate candidate-job application or job is not OPEN.
           headers:
             RateLimit-Limit:
               $ref: '#/components/headers/RateLimit-Limit'
@@ -1462,7 +1471,7 @@ paths:
                   value: []
                 success:
                   value:
-                  - appliedAt: 2026-11-25T10:00:00
+                  - appliedAt: 2026-11-25T10:00:00Z
                     candidateId: 1
                     id: 1
                     jobId: 1
@@ -1672,7 +1681,7 @@ paths:
                   value: []
                 success:
                   value:
-                  - appliedAt: 2026-11-25T10:00:00
+                  - appliedAt: 2026-11-25T10:00:00Z
                     candidateId: 1
                     id: 1
                     jobId: 1
@@ -1860,7 +1869,7 @@ paths:
 
         Workflow and side effects: Deletes the application record; this endpoint does not set a WITHDRAWN status.
 
-        Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
+        Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota. Withdrawal physically deletes the record at any status. There is no withdrawal history or email; the candidate can reapply if the job is OPEN.
       operationId: deleteApplication
       parameters:
       - description: Positive resource ID from a previous response. The resource depends
@@ -2082,7 +2091,7 @@ paths:
               examples:
                 success:
                   value:
-                    appliedAt: 2026-11-25T10:00:00
+                    appliedAt: 2026-11-25T10:00:00Z
                     candidateId: 1
                     id: 1
                     jobId: 1
@@ -2268,7 +2277,7 @@ paths:
 
         Workflow and side effects: Supply a JSON string enum, not an object. Supported: SUBMITTED, REVIEWED, SHORTLISTED, REJECTED, HIRED. Updates status and attempts a notification email on change. Transition ordering is not enforced yet.
 
-        Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
+        Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota. Allowed transitions: SUBMITTED -> REVIEWED or REJECTED; REVIEWED -> SHORTLISTED or REJECTED; SHORTLISTED -> HIRED or REJECTED. HIRED and REJECTED are terminal. Repeating the current status is a successful no-op with no notification. Other transitions return 409 APPLICATION_CONFLICT. Status updates lock the application row. The request remains a raw JSON string, for example "REVIEWED", not an object. Notifications start only after commit and are best-effort, without durable retry.
       operationId: updateApplicationStatus
       parameters:
       - description: Positive resource ID from a previous response. The resource depends
@@ -2303,7 +2312,7 @@ paths:
               examples:
                 success:
                   value:
-                    appliedAt: 2026-11-25T10:00:00
+                    appliedAt: 2026-11-25T10:00:00Z
                     candidateId: 1
                     id: 1
                     jobId: 1
@@ -2424,6 +2433,29 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
           description: "Requested record, related profile, job, or stored resume file\
             \ does not exist after permission checks."
+          headers:
+            RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit-Limit'
+            RateLimit-Remaining:
+              $ref: '#/components/headers/RateLimit-Remaining'
+            RateLimit-Reset:
+              $ref: '#/components/headers/RateLimit-Reset'
+        "409":
+          content:
+            application/json:
+              examples:
+                APPLICATION_CONFLICT:
+                  value:
+                    code: APPLICATION_CONFLICT
+                    details: []
+                    error: Conflict
+                    message: Cannot change application status from SUBMITTED to HIRED
+                    path: /api/v1/applications/1/status
+                    status: 409
+                    timestamp: 2026-11-25T10:00:00Z
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: The requested application transition is not allowed.
           headers:
             RateLimit-Limit:
               $ref: '#/components/headers/RateLimit-Limit'
@@ -5614,7 +5646,7 @@ paths:
                     data:
                     - category: Technology
                       companyId: 1
-                      createdAt: 2026-11-25T10:00:00
+                      createdAt: 2026-11-25T10:00:00Z
                       description: Build and maintain the recruitment platform APIs.
                       employmentType: Full-time
                       endsAt: null
@@ -5637,7 +5669,7 @@ paths:
                     data:
                     - category: Technology
                       companyId: 1
-                      createdAt: 2026-11-25T10:00:00
+                      createdAt: 2026-11-25T10:00:00Z
                       description: Build and maintain the recruitment platform APIs.
                       employmentType: Full-time
                       endsAt: null
@@ -5761,7 +5793,7 @@ paths:
 
         Roles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.
 
-        Workflow and side effects: Requires an existing owned company profile, or ADMIN. Persists category, status, numeric salary bounds, coordinates, and local job time bounds as well as basic fields. Title (3–255) and description (at least 20) are required. Status defaults OPEN. Supply both coordinates or neither and both local time bounds or neither, with end after start. Numeric salary bounds are whole USD per year and generate the deprecated salaryRange display; legacy-only text remains display-only and is not searched as numeric salary. Creates a job, not an interview slot.
+        Workflow and side effects: Requires an existing owned company profile, or ADMIN. Persists category, status, numeric salary bounds, coordinates, and UTC job time bounds as well as basic fields. Title (3–255) and description (at least 20) are required. Status defaults OPEN. Supply both coordinates or neither and both time bounds or neither, with end after start. Numeric salary bounds are whole USD per year and generate the deprecated salaryRange display; legacy-only text remains display-only and is not searched as numeric salary. Creates a job, not an interview slot.
 
         Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
       operationId: createJob
@@ -5773,7 +5805,7 @@ paths:
               companyId: 1
               description: Build and maintain the recruitment platform APIs.
               employmentType: Full-time
-              endsAt: 2027-02-01T10:00:00
+              endsAt: 2027-02-01T10:00:00Z
               latitude: 37.7749
               location: San Francisco
               longitude: -122.4194
@@ -5781,7 +5813,7 @@ paths:
               minSalary: 90000
               salaryRange: 90000 - 130000
               skillsRequired: "Java, Spring Boot, PostgreSQL"
-              startsAt: 2027-02-01T09:00:00
+              startsAt: 2027-02-01T09:00:00Z
               status: OPEN
               title: Backend Engineer
             schema:
@@ -5798,10 +5830,10 @@ paths:
                   value:
                     category: Technology
                     companyId: 1
-                    createdAt: 2026-11-25T10:00:00
+                    createdAt: 2026-11-25T10:00:00Z
                     description: Build and maintain the recruitment platform APIs.
                     employmentType: Full-time
-                    endsAt: 2027-02-01T10:00:00
+                    endsAt: 2027-02-01T10:00:00Z
                     id: 1
                     latitude: 37.7749
                     location: San Francisco
@@ -5810,7 +5842,7 @@ paths:
                     minSalary: 90000
                     salaryRange: 90000 - 130000
                     skillsRequired: "Java, Spring Boot, PostgreSQL"
-                    startsAt: 2027-02-01T09:00:00
+                    startsAt: 2027-02-01T09:00:00Z
                     status: OPEN
                     title: Backend Engineer
               schema:
@@ -6050,7 +6082,7 @@ paths:
                   value:
                   - category: Technology
                     companyId: 1
-                    createdAt: 2026-11-25T10:00:00
+                    createdAt: 2026-11-25T10:00:00Z
                     description: Build and maintain the recruitment platform APIs.
                     employmentType: Full-time
                     endsAt: null
@@ -6410,7 +6442,7 @@ paths:
                   value:
                   - category: Technology
                     companyId: 1
-                    createdAt: 2026-11-25T10:00:00
+                    createdAt: 2026-11-25T10:00:00Z
                     description: Build and maintain the recruitment platform APIs.
                     employmentType: Full-time
                     endsAt: null
@@ -6558,7 +6590,7 @@ paths:
                   value:
                   - category: Technology
                     companyId: 1
-                    createdAt: 2026-11-25T10:00:00
+                    createdAt: 2026-11-25T10:00:00Z
                     description: Build and maintain the recruitment platform APIs.
                     employmentType: Full-time
                     endsAt: null
@@ -6909,7 +6941,7 @@ paths:
                   value:
                     category: Technology
                     companyId: 1
-                    createdAt: 2026-11-25T10:00:00
+                    createdAt: 2026-11-25T10:00:00Z
                     description: Build and maintain the recruitment platform APIs.
                     employmentType: Full-time
                     endsAt: null
@@ -7055,7 +7087,7 @@ paths:
 
         Roles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.
 
-        Workflow and side effects: Updates only non-null supplied fields; omitted and explicit null fields preserve existing values, matching GraphQL updateJob. Null cannot clear a field. companyId cannot change; ID/createdAt are server-managed. Coordinates and local job time fields are supported; the final coordinate/time pairs must be valid and end must follow start. Numeric salaries are nonnegative whole USD per year, min <= max, and override legacy salaryRange text. Job time updates do not modify InterviewSlot records.
+        Workflow and side effects: Updates only non-null supplied fields; omitted and explicit null fields preserve existing values, matching GraphQL updateJob. Null cannot clear a field. companyId cannot change; ID/createdAt are server-managed. Coordinates and UTC job time fields are supported; the final coordinate/time pairs must be valid and end must follow start. Numeric salaries are nonnegative whole USD per year, min <= max, and override legacy salaryRange text. Job time updates do not modify InterviewSlot records.
 
         Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
       operationId: updateJob
@@ -7078,7 +7110,7 @@ paths:
               companyId: 1
               description: Build and maintain the recruitment platform APIs.
               employmentType: Full-time
-              endsAt: 2027-02-01T10:00:00
+              endsAt: 2027-02-01T10:00:00Z
               latitude: 37.7749
               location: San Francisco
               longitude: -122.4194
@@ -7086,7 +7118,7 @@ paths:
               minSalary: 90000
               salaryRange: 90000 - 130000
               skillsRequired: "Java, Spring Boot, PostgreSQL"
-              startsAt: 2027-02-01T09:00:00
+              startsAt: 2027-02-01T09:00:00Z
               status: OPEN
               title: Backend Engineer
             schema:
@@ -7103,10 +7135,10 @@ paths:
                   value:
                     category: Technology
                     companyId: 1
-                    createdAt: 2026-11-25T10:00:00
+                    createdAt: 2026-11-25T10:00:00Z
                     description: Build and maintain the recruitment platform APIs.
                     employmentType: Full-time
-                    endsAt: 2027-02-01T10:00:00
+                    endsAt: 2027-02-01T10:00:00Z
                     id: 1
                     latitude: 37.7749
                     location: San Francisco
@@ -7115,7 +7147,7 @@ paths:
                     minSalary: 90000
                     salaryRange: 90000 - 130000
                     skillsRequired: "Java, Spring Boot, PostgreSQL"
-                    startsAt: 2027-02-01T09:00:00
+                    startsAt: 2027-02-01T09:00:00Z
                     status: OPEN
                     title: Backend Engineer
               schema:
@@ -7346,7 +7378,7 @@ paths:
                   - candidateId: 1
                     filePath: /static/resumes/resume_1_example.pdf
                     id: 1
-                    uploadedAt: 2026-11-25T10:00:00
+                    uploadedAt: 2026-11-25T10:00:00Z
               schema:
                 items:
                   $ref: '#/components/schemas/Resume'
@@ -7498,7 +7530,7 @@ paths:
                   - candidateId: 1
                     filePath: /static/resumes/resume_1_example.pdf
                     id: 1
-                    uploadedAt: 2026-11-25T10:00:00
+                    uploadedAt: 2026-11-25T10:00:00Z
               schema:
                 items:
                   $ref: '#/components/schemas/Resume'
@@ -7705,7 +7737,7 @@ paths:
                     candidateId: 1
                     filePath: /static/resumes/resume_1_example.pdf
                     id: 1
-                    uploadedAt: 2026-11-25T10:00:00
+                    uploadedAt: 2026-11-25T10:00:00Z
               schema:
                 $ref: '#/components/schemas/Resume'
           description: Read the latest resume metadata completed
@@ -8125,7 +8157,7 @@ paths:
                       candidateId: 1
                       filePath: /static/resumes/resume_1_example.pdf
                       id: 1
-                      uploadedAt: 2026-11-25T10:00:00
+                      uploadedAt: 2026-11-25T10:00:00Z
                     success: true
               schema:
                 $ref: '#/components/schemas/ResumeUploadResponse'
@@ -8598,7 +8630,7 @@ paths:
                     candidateId: 1
                     filePath: /static/resumes/resume_1_example.pdf
                     id: 1
-                    uploadedAt: 2026-11-25T10:00:00
+                    uploadedAt: 2026-11-25T10:00:00Z
               schema:
                 $ref: '#/components/schemas/Resume'
           description: Read resume metadata completed
@@ -8778,28 +8810,28 @@ paths:
 
         Roles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.
 
-        Workflow and side effects: Supply both starts_at and ends_at or neither. Uses ISO local date-times; timezone conversion is not implemented. Returns overlapping slots, unpaginated. candidateId is null unless caller is that candidate, the job-owning COMPANY, or ADMIN.
+        Workflow and side effects: Supply both starts_at and ends_at or neither. Offsets are normalized to UTC; offset-free input means UTC. Intervals are half-open [start, end); adjacent slots do not overlap. Returns overlapping slots, unpaginated. candidateId is null unless caller is that candidate, the job-owning COMPANY, or ADMIN.
 
         Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
       operationId: getSlots
       parameters:
-      - description: ISO local date-time. Supply both bounds; end must follow start.
-          Offset normalization is not implemented.
-        example: 2027-01-10T10:00:00
+      - description: "ISO 8601 timestamp with Z or an offset, normalized to UTC; offset-free\
+          \ input means UTC. Supply both bounds; end must follow start. Query + offsets\
+          \ must be URL-encoded as %2B."
+        example: 2027-01-10T10:00:00Z
         in: query
         name: starts_at
         required: false
         schema:
-          format: date-time
           type: string
-      - description: ISO local date-time. Supply both bounds; end must follow start.
-          Offset normalization is not implemented.
-        example: 2027-01-10T10:00:00
+      - description: "ISO 8601 timestamp with Z or an offset, normalized to UTC; offset-free\
+          \ input means UTC. Supply both bounds; end must follow start. Query + offsets\
+          \ must be URL-encoded as %2B."
+        example: 2027-01-10T10:00:00Z
         in: query
         name: ends_at
         required: false
         schema:
-          format: date-time
           type: string
       responses:
         "200":
@@ -8811,11 +8843,11 @@ paths:
                 success:
                   value:
                   - candidateId: null
-                    createdAt: 2026-11-25T10:00:00
-                    endsAt: 2027-01-10T10:30:00
+                    createdAt: 2026-11-25T10:00:00Z
+                    endsAt: 2027-01-10T10:30:00Z
                     id: 1
                     jobId: 1
-                    startsAt: 2027-01-10T10:00:00
+                    startsAt: 2027-01-10T10:00:00Z
                     status: SCHEDULED
               schema:
                 items:
@@ -8927,15 +8959,15 @@ paths:
 
         Workflow and side effects: Job and any candidate must exist. Candidate callers need a profile; candidateId defaults to their profile. Company/admin may omit candidateId for an unassigned slot. endsAt must follow startsAt. Same-job overlapping slots return 409. This does not require an existing job application.
 
-        Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
+        Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota. Slots are SCHEDULED reservations: candidateId null means unassigned, otherwise assigned. Both reserve the interval. Same-job creation is serialized using a database parent-row lock, including simultaneous first bookings; different jobs may overlap. Adjacent intervals are allowed. Job time fields remain independent. There is no assignment/update/cancellation endpoint; delete and recreate a slot to change it.
       operationId: createSlot
       requestBody:
         content:
           application/json:
             example:
-              endsAt: 2027-01-10T10:30:00
+              endsAt: 2027-01-10T10:30:00Z
               jobId: 1
-              startsAt: 2027-01-10T10:00:00
+              startsAt: 2027-01-10T10:00:00Z
             schema:
               $ref: '#/components/schemas/CreateSlotDto'
         description: Required input fields are marked in the schema. Unknown JSON
@@ -8949,11 +8981,11 @@ paths:
                 success:
                   value:
                     candidateId: 1
-                    createdAt: 2026-11-25T10:00:00
-                    endsAt: 2027-01-10T10:30:00
+                    createdAt: 2026-11-25T10:00:00Z
+                    endsAt: 2027-01-10T10:30:00Z
                     id: 1
                     jobId: 1
-                    startsAt: 2027-01-10T10:00:00
+                    startsAt: 2027-01-10T10:00:00Z
                     status: SCHEDULED
               schema:
                 $ref: '#/components/schemas/InterviewSlot'
@@ -9192,7 +9224,7 @@ paths:
 
         Workflow and side effects: Deletes the existing slot record. Does not preserve a cancellation event.
 
-        Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
+        Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota. This physically deletes the reservation and frees its interval; there is no cancellation history or notification.
       operationId: deleteSlot
       parameters:
       - description: Positive resource ID from a previous response. The resource depends
@@ -9406,7 +9438,7 @@ paths:
                   value: []
                 success:
                   value:
-                  - createdAt: 2026-11-25T10:00:00
+                  - createdAt: 2026-11-25T10:00:00Z
                     email: alex@example.com
                     id: 3
                     role: CANDIDATE
@@ -9556,7 +9588,7 @@ paths:
               examples:
                 success:
                   value:
-                    createdAt: 2026-11-25T10:00:00
+                    createdAt: 2026-11-25T10:00:00Z
                     email: alex@example.com
                     id: 3
                     role: CANDIDATE
@@ -9995,7 +10027,7 @@ paths:
               examples:
                 success:
                   value:
-                    createdAt: 2026-11-25T10:00:00
+                    createdAt: 2026-11-25T10:00:00Z
                     email: alex@example.com
                     id: 3
                     role: CANDIDATE
@@ -10211,7 +10243,7 @@ paths:
               examples:
                 success:
                   value:
-                    createdAt: 2026-11-25T10:00:00
+                    createdAt: 2026-11-25T10:00:00Z
                     email: alex@example.com
                     id: 3
                     role: CANDIDATE

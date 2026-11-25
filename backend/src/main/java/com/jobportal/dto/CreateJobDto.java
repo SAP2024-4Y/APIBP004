@@ -32,8 +32,8 @@ public class CreateJobDto {
     private Double latitude;
     @DecimalMin("-180") @DecimalMax("180")
     private Double longitude;
-    @Schema(example="2027-02-01T09:00:00", description="Optional job-level local date-time. Supply both time bounds on creation; does not create an interview slot.")
+    @Schema(example="2027-02-01T09:00:00Z", description="Optional job-level UTC timestamp. Supply both time bounds on creation; does not create an interview slot.")
     private String startsAt;
-    @Schema(example="2027-02-01T10:00:00", description="Optional job-level local date-time strictly after startsAt.")
+    @Schema(example="2027-02-01T10:00:00Z", description="Optional job-level UTC timestamp strictly after startsAt.")
     private String endsAt;
 }

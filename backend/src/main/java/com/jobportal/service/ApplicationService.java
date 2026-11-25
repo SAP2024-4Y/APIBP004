@@ -88,32 +88,23 @@ public class ApplicationService {
         return application;
     }
 
+    @Autowired private com.jobportal.repository.JobRepository jobs;
+
     public Application saveApplication(Application application) {
+        validateApplication(application);
+        if (application.getId() != null) throw new ValidationException("Application ID is server-managed; use the status endpoint to update");
+        Job job = jobs.findByIdForUpdate(application.getJobId())
+                .orElseThrow(() -> new ResourceNotFoundException("Job not found"));
+        if (!"OPEN".equals(job.getStatus())) throw new com.jobportal.exception.ApplicationConflictException("Applications require an OPEN job");
+        application.setStatus(Application.ApplicationStatus.SUBMITTED);
+        application.setAppliedAt(com.jobportal.time.UtcTime.now());
         candidateService.getCandidateById(application.getCandidateId());
         jobService.getJobById(application.getJobId());
-        if (application.getId() == null) {
-            // Check for duplicate applications
-            Application existingApplication = applicationRepository.findByCandidateIdAndJobId(
-                    application.getCandidateId(), application.getJobId());
-            if (existingApplication != null) {
-                throw new DuplicateResourceException(
-                        "Application already exists for candidate ID: " + application.getCandidateId() +
-                        " and job ID: " + application.getJobId() + ". Duplicate applications are not allowed.");
-            }
-            
-            // Save new application
-            Application savedApplication = applicationRepository.save(application);
-            
-            // Send email notifications for new applications
-            sendApplicationEmails(savedApplication);
-            
-            logger.info("New application created with ID: {} for candidate: {} and job: {}", 
-                       savedApplication.getId(), application.getCandidateId(), application.getJobId());
-            return savedApplication;
-        }
-        
-        // Update existing application
-        return applicationRepository.save(application);
+        Application existing = applicationRepository.findByCandidateIdAndJobId(application.getCandidateId(), application.getJobId());
+        if (existing != null) throw new DuplicateResourceException("Application already exists for this candidate and job");
+        Application saved = applicationRepository.save(application);
+        afterCommit(() -> sendApplicationEmails(saved));
+        return saved;
     }
 
     public void deleteApplication(Integer id) {
@@ -144,18 +135,34 @@ public class ApplicationService {
 
     public Application updateApplicationStatus(Integer id, Application.ApplicationStatus status) {
         if (status == null) throw new ValidationException("Application status is required");
-        Application application = getApplicationById(id);
+        Application application = applicationRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
         Application.ApplicationStatus oldStatus = application.getStatus();
+        if (oldStatus == status) return application;
+        boolean allowed = switch (oldStatus) {
+            case SUBMITTED -> status == Application.ApplicationStatus.REVIEWED || status == Application.ApplicationStatus.REJECTED;
+            case REVIEWED -> status == Application.ApplicationStatus.SHORTLISTED || status == Application.ApplicationStatus.REJECTED;
+            case SHORTLISTED -> status == Application.ApplicationStatus.HIRED || status == Application.ApplicationStatus.REJECTED;
+            case REJECTED, HIRED -> false;
+        };
+        if (!allowed) throw new com.jobportal.exception.ApplicationConflictException("Cannot change application status from " + oldStatus + " to " + status);
         application.setStatus(status);
         Application savedApplication = applicationRepository.save(application);
         
         // Send status change notification asynchronously if status changed
         if (!oldStatus.equals(status)) {
             // Send email asynchronously to avoid blocking the response
-            CompletableFuture.runAsync(() -> sendStatusChangeEmail(savedApplication, oldStatus, status));
+            afterCommit(() -> CompletableFuture.runAsync(() -> sendStatusChangeEmail(savedApplication, oldStatus, status)));
         }
         
         return savedApplication;
+    }
+
+    private void afterCommit(Runnable action) {
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override public void afterCommit() { action.run(); }
+                });
     }
 
     private void sendApplicationEmails(Application application) {

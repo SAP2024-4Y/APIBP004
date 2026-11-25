@@ -59,7 +59,7 @@ public class ApplicationController {
 
         application.setCandidateId(access.applicationCandidate(application.getCandidateId()));
         application.setStatus(Application.ApplicationStatus.SUBMITTED);
-        application.setAppliedAt(LocalDateTime.now());
+        application.setAppliedAt(com.jobportal.time.UtcTime.now());
         Application savedApplication = applicationService.saveApplication(application);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedApplication); // Return 201
     }

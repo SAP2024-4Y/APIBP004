@@ -56,8 +56,8 @@ public class JobQueryResolver implements GraphQLQueryResolver {
     }
 
     public List<InterviewSlot> slots(String startsAt, String endsAt) {
-        LocalDateTime start = startsAt != null ? LocalDateTime.parse(startsAt.replace("Z", "")) : null;
-        LocalDateTime end = endsAt != null ? LocalDateTime.parse(endsAt.replace("Z", "")) : null;
+        LocalDateTime start = com.jobportal.time.UtcTime.parse(startsAt);
+        LocalDateTime end = com.jobportal.time.UtcTime.parse(endsAt);
         return slotService.findByTimeWindow(start, end);
     }
 

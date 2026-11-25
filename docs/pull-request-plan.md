@@ -8,7 +8,7 @@ Related issues are grouped into seven pull requests, including the merged regist
 | 2 | Shared REST and GraphQL authorization, resource ownership, and private fields — merged as PR #35 | #25, #26 |
 | 3 | Merged as PR #36 — API contracts: Swagger/OpenAPI and GraphQL schema consistency, descriptions, examples, validation, errors, resume handling, and rate-limit documentation | #6, #7, #8, #9, #10, #11, #16, #30, #31 |
 | 4 | Merged as PR #37 — Database schema, entity documentation, valid seed relationships, and bulk data | #12, #13, #14, #15 |
-| 5 | Job fields, salary semantics, filtering, pagination, and geographic search | #17, #18, #19, #20, #21, #22, #29 |
+| 5 | Merged as PR #38 — Job fields, salary semantics, filtering, pagination, and geographic search | #17, #18, #19, #20, #21, #22, #29 |
 | 6 | UTC timestamps, scheduling rules, and application lifecycle | #23, #24, #28 |
 | 7 | CI, remaining contract coverage, and executable API walkthrough | #32, #33 |
 
@@ -105,3 +105,25 @@ Closes #20
 Closes #21
 Closes #22
 Closes #29
+
+## PR 6
+
+Title: **Normalize UTC timestamps and enforce scheduling and application workflows**
+
+Branch: fix/utc-scheduling-and-application-lifecycle
+
+Description:
+
+REST and GraphQL normalize timestamp offsets to UTC and return timestamps with Z. Offset-free inputs remain supported with an explicit UTC interpretation. Server-generated timestamps use UTC independently of the JVM timezone. Existing timestamp columns and historical values are preserved and interpreted as UTC.
+
+Interview-slot creation validates references and locks the parent job row before checking overlap, preventing simultaneous requests from creating conflicting reservations. Assigned and unassigned reservations both block their interval. Calendar windows use half-open boundaries, allow adjacent slots, and reject incomplete or invalid bounds. Job time metadata remains independent of interview slots.
+
+Application submission requires an OPEN job, assigns status/time in the service, and serializes duplicate checks. Status changes follow SUBMITTED → REVIEWED → SHORTLISTED → HIRED, with rejection allowed from each nonterminal state. Repeating a status is a no-op; invalid transitions return 409 APPLICATION_CONFLICT. Application row locks protect concurrent reviews. Email notifications start only after successful commit and remain best-effort.
+
+Swagger, GraphQL documentation, the data dictionary, and manual examples describe timestamp compatibility, slot reservation/deletion rules, transition permissions, and notification behavior. The status-update request remains a raw JSON enum string. Historical timezone correction and durable email delivery are not included.
+
+Validation: 108 tests passed with zero failures, errors, or skips under Asia/Kolkata, including contract snapshot comparison without regeneration. All 11 scheduling/application integration tests also passed against isolated PostgreSQL 15 under America/New_York, covering offset normalization, concurrent slot creation, duplicate applications, competing terminal reviews, and rollback notifications. Maven reported a delayed fork shutdown in the full suite but returned BUILD SUCCESS. Manual checks: docs/scheduling-and-applications.md.
+
+Closes #23
+Closes #24
+Closes #28

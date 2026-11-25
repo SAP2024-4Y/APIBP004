@@ -34,6 +34,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> duplicate(DuplicateResourceException ex, HttpServletRequest request) {
         return error(request, HttpStatus.CONFLICT, "DUPLICATE_RESOURCE", ex.getMessage(), null);
     }
+    @ExceptionHandler(ApplicationConflictException.class)
+    public ResponseEntity<ErrorResponse> applicationConflict(ApplicationConflictException ex, HttpServletRequest request) {
+        return error(request, HttpStatus.CONFLICT, "APPLICATION_CONFLICT", ex.getMessage(), null);
+    }
     @ExceptionHandler(SchedulingConflictException.class)
     public ResponseEntity<ErrorResponse> conflict(SchedulingConflictException ex, HttpServletRequest request) {
         return error(request, HttpStatus.CONFLICT, "SLOT_CONFLICT", ex.getMessage(), null);

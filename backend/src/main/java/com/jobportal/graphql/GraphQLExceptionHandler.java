@@ -43,6 +43,7 @@ public class GraphQLExceptionHandler implements GraphQLErrorHandler {
 
     private String resolveCode(Throwable ex) {
         if (ex instanceof ResourceNotFoundException) return "RESOURCE_NOT_FOUND";
+        if (ex instanceof ApplicationConflictException) return "APPLICATION_CONFLICT";
         if (ex instanceof SchedulingConflictException) return "SLOT_CONFLICT";
         if (ex instanceof UnauthorizedException) return "UNAUTHORIZED";
         if (ex instanceof ValidationException || ex instanceof IllegalArgumentException || ex instanceof java.time.format.DateTimeParseException) return "VALIDATION_ERROR";

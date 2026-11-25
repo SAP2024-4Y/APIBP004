@@ -26,7 +26,7 @@ public class User {
     private Role role;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = com.jobportal.time.UtcTime.now();
 
     public enum Role {
         CANDIDATE, COMPANY, ADMIN

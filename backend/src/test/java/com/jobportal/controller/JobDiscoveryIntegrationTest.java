@@ -159,7 +159,7 @@ class JobDiscoveryIntegrationTest {
         assertEquals(input.get("description"),updated.path("description").asText()); assertEquals(90000,updated.path("minSalary").asInt());
         assertEquals(37.775,updated.path("latitude").asDouble()); assertEquals(-122.4194,updated.path("longitude").asDouble());
         error(request(HttpMethod.PUT,"/api/v1/jobs/"+id,owner,Map.of("endsAt","2020-01-01T00:00:00")),"VALIDATION_ERROR");
-        assertEquals("2027-02-01T10:00:00",get("/api/v1/jobs/"+id).path("endsAt").asText());
+        assertEquals("2027-02-01T10:00:00Z",get("/api/v1/jobs/"+id).path("endsAt").asText());
         Map<String,Object> missingCompany=new HashMap<>(input); missingCompany.put("companyId",999999);
         assertEquals(404,request(HttpMethod.POST,"/api/v1/jobs",admin,missingCompany).getStatusCode().value());
     }
@@ -169,10 +169,10 @@ class JobDiscoveryIntegrationTest {
         JsonNode response=graph("mutation($input:CreateJobInput!){createJob(input:$input){id title description category status location skillsRequired employmentType minSalary maxSalary salaryRange latitude longitude startsAt endsAt}}",Map.of("input",input),owner);
         assertFalse(response.has("errors"),response.toString()); JsonNode created=response.at("/data/createJob"); assertAllFields(created,input);
         int id=created.path("id").asInt(); assertAllFields(get("/api/v1/jobs/"+id),input);
-        Map<String,Object> patch=new HashMap<>(); patch.put("title",null); patch.put("startsAt","2027-02-01T09:30:00"); patch.put("longitude",-122.4190);
+        Map<String,Object> patch=new HashMap<>(); patch.put("title",null); patch.put("startsAt","2027-02-01T09:30:00Z"); patch.put("longitude",-122.4190);
         JsonNode result=graph("mutation($id:ID!,$input:UpdateJobInput!){updateJob(id:$id,input:$input){id title startsAt endsAt latitude longitude}}",Map.of("id",Integer.toString(id),"input",patch),owner);
         assertFalse(result.has("errors"),result.toString()); assertEquals(input.get("title"),result.at("/data/updateJob/title").asText());
-        assertEquals("2027-02-01T09:30:00",get("/api/v1/jobs/"+id).path("startsAt").asText());
+        assertEquals("2027-02-01T09:30:00Z",get("/api/v1/jobs/"+id).path("startsAt").asText());
     }
 
     @Test void salaryMigrationBackfillsNumericDisplayAndPreservesLegacyOnlyText() {
@@ -241,7 +241,7 @@ class JobDiscoveryIntegrationTest {
         Map<String,Object> input=new LinkedHashMap<>(); input.put("companyId",company.getId()); input.put("title",title); input.put("description","Build and maintain the complete recruitment platform APIs.");
         input.put("category","Science"); input.put("status","OPEN"); input.put("location","San Francisco"); input.put("skillsRequired","Java, PostgreSQL"); input.put("employmentType","Full-time");
         input.put("minSalary",90000); input.put("maxSalary",120000); input.put("salaryRange","ignored legacy input"); input.put("latitude",37.7749); input.put("longitude",-122.4194);
-        input.put("startsAt","2027-02-01T09:00:00"); input.put("endsAt","2027-02-01T10:00:00"); return input;
+        input.put("startsAt","2027-02-01T09:00:00Z"); input.put("endsAt","2027-02-01T10:00:00Z"); return input;
     }
     private void assertAllFields(JsonNode result,Map<String,Object> input) {
         input.forEach((key,value)-> {if(!Set.of("companyId","salaryRange").contains(key)) assertEquals(json.valueToTree(value),result.path(key),key+": "+result);});

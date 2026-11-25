@@ -37,6 +37,6 @@ public class JobResolver implements GraphQLResolver<Job> {
     public String endsAt(Job job) { return time(job.getEndsAt()); }
     public String createdAt(Job job) { return time(job.getCreatedAt()); }
     private String time(java.time.LocalDateTime value) {
-        return value == null ? null : value.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        return com.jobportal.time.UtcTime.format(value);
     }
 }

@@ -199,6 +199,7 @@ paths:
     post:
       operationId: createJob
       summary: Create a job posting
+      description: Requires COMPANY ownership of companyId or ADMIN. Other roles and company owners receive 403.
       tags: [Jobs]
       security:
         - BearerAuth: []
@@ -247,6 +248,7 @@ paths:
     put:
       operationId: updateJob
       summary: Update a job posting
+      description: Requires the owning COMPANY or ADMIN. Job ownership cannot be reassigned.
       tags: [Jobs]
       security:
         - BearerAuth: []
@@ -278,6 +280,7 @@ paths:
     delete:
       operationId: deleteJob
       summary: Delete a job posting
+      description: Requires the owning COMPANY or ADMIN.
       tags: [Jobs]
       security:
         - BearerAuth: []
@@ -363,6 +366,7 @@ paths:
     get:
       operationId: listSlots
       summary: List interview slots in a time window (Calendar API)
+      description: Public time-window lookup. candidateId is visible only to the assigned candidate, the owning COMPANY, or ADMIN; otherwise it is null.
       tags: [Slots]
       parameters:
         - name: starts_at
@@ -396,6 +400,9 @@ paths:
       operationId: createSlot
       summary: Book an interview slot
       description: |
+        Candidates book for themselves. COMPANY callers may schedule only for their own
+        jobs; ADMIN may schedule any job. Candidate callers may omit candidateId, which
+        is derived from their profile.
         Books a slot. Returns **409 Conflict** with `code: SLOT_CONFLICT`
         if the time window overlaps with an existing slot for the same job.
       tags: [Slots]
@@ -433,6 +440,7 @@ paths:
     delete:
       operationId: deleteSlot
       summary: Cancel an interview slot
+      description: Requires the assigned candidate, the owning COMPANY, or ADMIN.
       tags: [Slots]
       security:
         - BearerAuth: []
@@ -472,6 +480,7 @@ paths:
     post:
       operationId: applyForJob
       summary: Submit a job application
+      description: Requires CANDIDATE. Candidate identity is derived from the authenticated user. The server assigns the initial status and submission timestamp.
       tags: [Applications]
       security:
         - BearerAuth: []
@@ -790,7 +799,8 @@ components:
         jobId:
           type: integer
         candidateId:
-          type: integer
+          type: [integer, 'null']
+          description: Visible only to the assigned candidate, job owner, or ADMIN
         startsAt:
           type: string
           format: date-time

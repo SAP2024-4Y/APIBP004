@@ -44,16 +44,16 @@ type Query {
 }
 
 type Mutation {
-  "Create a new job posting. Requires COMPANY role."
+  "Only the owning COMPANY or ADMIN may create a job."
   createJob(input: CreateJobInput!): Job!
 
-  "Update an existing job. Requires COMPANY role."
+  "Only the owning COMPANY or ADMIN may update a job."
   updateJob(id: ID!, input: UpdateJobInput!): Job!
 
-  "Delete a job. Requires COMPANY role."
+  "Only the owning COMPANY or ADMIN may delete a job."
   deleteJob(id: ID!): Boolean!
 
-  "Book an interview slot. Returns SLOT_CONFLICT error if the window overlaps."
+  "Candidates book for themselves; COMPANY schedules its jobs; ADMIN may schedule any job."
   createSlot(input: CreateSlotInput!): InterviewSlot!
 
   "Cancel an interview slot by ID."
@@ -92,7 +92,7 @@ type Job {
   "The company that posted this job. Batch-loaded to prevent N+1 queries."
   company: Company
 
-  "Applications submitted for this job."
+  "Private: only the owning COMPANY or ADMIN may read job applications."
   applications: [Application!]
 }
 
@@ -127,6 +127,7 @@ type Application {
 type InterviewSlot {
   id: ID!
   jobId: Int!
+  "Visible only to the assigned candidate, the owning COMPANY, or ADMIN; otherwise null."
   candidateId: Int
   startsAt: String!
   endsAt: String!
@@ -207,6 +208,7 @@ input UpdateJobInput {
 
 input CreateSlotInput {
   jobId: Int!
+  "Candidates may omit this or supply their own candidate profile ID."
   candidateId: Int
   startsAt: String!
   endsAt: String!

@@ -9,7 +9,9 @@ import com.jobportal.service.JobService;
 import com.jobportal.security.dto.LoginRequest;
 import com.jobportal.security.dto.AuthResponse;
 import graphql.kickstart.tools.GraphQLMutationResolver;
+import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.jobportal.security.ResourceAuthorization;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -17,6 +19,9 @@ import java.util.Map;
 
 @Component
 public class JobMutationResolver implements GraphQLMutationResolver {
+
+    @Autowired
+    private ResourceAuthorization access;
 
     @Autowired
     private JobService jobService;
@@ -27,7 +32,8 @@ public class JobMutationResolver implements GraphQLMutationResolver {
     @Autowired
     private AuthService authService;
 
-    public Job createJob(Map<String, Object> input) {
+    public Job createJob(Map<String, Object> input, DataFetchingEnvironment env) {
+        access.requireCompanyOwner(access.actor(env), (Integer) input.get("companyId"));
         Job job = new Job();
         job.setCompanyId((Integer) input.get("companyId"));
         job.setTitle((String) input.get("title"));
@@ -44,7 +50,8 @@ public class JobMutationResolver implements GraphQLMutationResolver {
         return jobService.saveJob(job);
     }
 
-    public Job updateJob(String id, Map<String, Object> input) {
+    public Job updateJob(String id, Map<String, Object> input, DataFetchingEnvironment env) {
+        access.requireJobOwner(access.actor(env), Integer.parseInt(id));
         Job job = jobService.getJobById(Integer.parseInt(id));
         if (input.get("title") != null) job.setTitle((String) input.get("title"));
         if (input.get("description") != null) job.setDescription((String) input.get("description"));
@@ -58,14 +65,16 @@ public class JobMutationResolver implements GraphQLMutationResolver {
         return jobService.saveJob(job);
     }
 
-    public boolean deleteJob(String id) {
+    public boolean deleteJob(String id, DataFetchingEnvironment env) {
+        access.requireJobOwner(access.actor(env), Integer.parseInt(id));
         jobService.deleteJob(Integer.parseInt(id));
         return true;
     }
 
-    public InterviewSlot createSlot(Map<String, Object> input) {
+    public InterviewSlot createSlot(Map<String, Object> input, DataFetchingEnvironment env) {
         Integer jobId = (Integer) input.get("jobId");
         Integer candidateId = input.get("candidateId") != null ? (Integer) input.get("candidateId") : null;
+        candidateId = access.slotCandidate(access.actor(env), jobId, candidateId);
         String startsAtStr = (String) input.get("startsAt");
         String endsAtStr = (String) input.get("endsAt");
         LocalDateTime startsAt = startsAtStr != null ? LocalDateTime.parse(startsAtStr.replace("Z", "")) : null;

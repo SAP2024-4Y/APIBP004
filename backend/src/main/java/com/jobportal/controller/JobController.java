@@ -1,5 +1,7 @@
 package com.jobportal.controller;
 
+import org.springframework.security.access.AccessDeniedException;
+
 import com.jobportal.dto.CreateJobDto;
 import com.jobportal.dto.response.JobResponseDto;
 import com.jobportal.entity.Job;
@@ -13,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.jobportal.security.ResourceAuthorization;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,6 +30,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/jobs")
 @CrossOrigin(origins = "*")
 public class JobController {
+
+    @Autowired
+    private ResourceAuthorization access;
 
     @Autowired
     private JobService jobService;
@@ -114,6 +120,7 @@ public class JobController {
     }
 
     @Operation(summary = "Create a new job posting",
+               description = "Requires the owning COMPANY or ADMIN. COMPANY callers must own the supplied companyId.",
                security = @SecurityRequirement(name = "Bearer Authentication"))
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Job created successfully",
@@ -125,6 +132,7 @@ public class JobController {
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     @PostMapping
     public ResponseEntity<JobResponseDto> createJob(@RequestBody CreateJobDto createJobDto) {
+        access.requireCompanyOwner(createJobDto.getCompanyId());
         Job job = new Job();
         job.setCompanyId(createJobDto.getCompanyId());
         job.setTitle(createJobDto.getTitle());
@@ -138,11 +146,16 @@ public class JobController {
     }
 
     @Operation(summary = "Update a job posting",
+               description = "Requires the owning COMPANY or ADMIN. Job ownership cannot be reassigned.",
                security = @SecurityRequirement(name = "Bearer Authentication"))
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<JobResponseDto> updateJob(@PathVariable Integer id, @RequestBody Job jobDetails) {
+        access.requireJobOwner(id);
         Job job = jobService.getJobById(id);
+        if (jobDetails.getCompanyId() != null && !jobDetails.getCompanyId().equals(job.getCompanyId())) {
+            throw new AccessDeniedException("Job ownership cannot be changed");
+        }
         job.setTitle(jobDetails.getTitle());
         job.setDescription(jobDetails.getDescription());
         job.setSkillsRequired(jobDetails.getSkillsRequired());
@@ -157,10 +170,12 @@ public class JobController {
     }
 
     @Operation(summary = "Delete a job posting",
+               description = "Requires the owning COMPANY or ADMIN.",
                security = @SecurityRequirement(name = "Bearer Authentication"))
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteJob(@PathVariable Integer id) {
+        access.requireJobOwner(id);
         jobService.deleteJob(id);
         return ResponseEntity.noContent().build();
     }

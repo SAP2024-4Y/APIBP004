@@ -61,30 +61,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/slots/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/companies/**").permitAll()
 
-                // Job management - companies and admin
-                .requestMatchers(HttpMethod.POST, "/api/v1/jobs/**").hasAnyRole("COMPANY", "ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/v1/jobs/**").hasAnyRole("COMPANY", "ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/jobs/**").hasAnyRole("COMPANY", "ADMIN")
-
-                // Company endpoints
-                .requestMatchers(HttpMethod.POST, "/api/v1/companies/**").hasRole("COMPANY")
-                .requestMatchers(HttpMethod.PUT, "/api/v1/companies/**").hasRole("COMPANY")
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/companies/**").hasRole("COMPANY")
-
-                // Candidate endpoints
-                .requestMatchers(HttpMethod.POST, "/api/v1/candidates/**").hasRole("CANDIDATE")
-                .requestMatchers(HttpMethod.PUT, "/api/v1/candidates/**").hasRole("CANDIDATE")
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/candidates/**").hasRole("CANDIDATE")
-                .requestMatchers(HttpMethod.GET, "/api/v1/candidates/**").hasAnyRole("CANDIDATE", "ADMIN")
-
-                // Applications
-                .requestMatchers("/api/v1/applications/**").hasAnyRole("CANDIDATE", "COMPANY", "ADMIN")
-
-                // User management - admin only
-                .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
-
-                // Resumes
-                .requestMatchers("/api/v1/resumes/**").authenticated()
+                // Protected operations enforce roles and ownership through ResourceAuthorization.
 
                 // Everything else requires auth
                 .anyRequest().authenticated()

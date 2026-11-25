@@ -13,10 +13,14 @@ import jakarta.websocket.server.HandshakeRequest;
 import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.jobportal.security.ResourceAuthorization;
 import org.springframework.stereotype.Component;
 
 @Component
 public class GraphQLContextBuilder implements GraphQLServletContextBuilder {
+
+    @Autowired
+    private ResourceAuthorization access;
 
     @Autowired
     private CompanyJobsDataLoader companyJobsDataLoader;
@@ -33,11 +37,13 @@ public class GraphQLContextBuilder implements GraphQLServletContextBuilder {
 
     @Override
     public GraphQLKickstartContext build(HttpServletRequest req, HttpServletResponse res) {
-        return DefaultGraphQLServletContext.createServletContext()
+        var context = DefaultGraphQLServletContext.createServletContext()
             .with(req)
             .with(res)
             .with(buildRegistry())
             .build();
+        context.put(ResourceAuthorization.Actor.class, access.currentActor());
+        return context;
     }
 
     @Override

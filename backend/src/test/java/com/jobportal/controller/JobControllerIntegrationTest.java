@@ -26,7 +26,13 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+    "spring.datasource.url=jdbc:h2:mem:job-controller;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
+    "spring.datasource.driver-class-name=org.h2.Driver",
+    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
+    "spring.jpa.hibernate.ddl-auto=create-drop", "spring.jpa.show-sql=false",
+    "logging.level.org.hibernate.SQL=OFF"
+})
 @AutoConfigureMockMvc
 class JobControllerIntegrationTest {
 
@@ -38,6 +44,9 @@ class JobControllerIntegrationTest {
 
     @MockBean
     private JobService jobService;
+
+    @MockBean
+    private com.jobportal.security.ResourceAuthorization resourceAuthorization;
 
     private Job testJob;
     private CreateJobDto createJobDto;
@@ -144,11 +153,11 @@ class JobControllerIntegrationTest {
     }
 
     @Test
-    void createJob_WithoutAuthentication_ShouldReturnForbidden() throws Exception {
+    void createJob_WithoutAuthentication_ShouldReturnUnauthorized() throws Exception {
         mockMvc.perform(post("/api/v1/jobs")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createJobDto)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         verify(jobService, never()).saveJob(any());
     }
@@ -194,10 +203,10 @@ class JobControllerIntegrationTest {
     }
 
     @Test
-    void deleteJob_WithoutAuthentication_ShouldReturnForbidden() throws Exception {
+    void deleteJob_WithoutAuthentication_ShouldReturnUnauthorized() throws Exception {
         mockMvc.perform(delete("/api/v1/jobs/1")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         verify(jobService, never()).deleteJob(anyInt());
     }

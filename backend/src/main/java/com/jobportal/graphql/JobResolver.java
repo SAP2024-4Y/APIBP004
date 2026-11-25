@@ -8,6 +8,7 @@ import graphql.kickstart.tools.GraphQLResolver;
 import graphql.schema.DataFetchingEnvironment;
 import org.dataloader.DataLoader;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.jobportal.security.ResourceAuthorization;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,6 +16,9 @@ import java.util.concurrent.CompletableFuture;
 
 @Component
 public class JobResolver implements GraphQLResolver<Job> {
+
+    @Autowired
+    private ResourceAuthorization access;
 
     @Autowired
     private ApplicationRepository applicationRepository;
@@ -25,7 +29,8 @@ public class JobResolver implements GraphQLResolver<Job> {
         return loader.load(job.getCompanyId());
     }
 
-    public List<Application> applications(Job job) {
+    public List<Application> applications(Job job, DataFetchingEnvironment env) {
+        access.requireJobOwner(access.actor(env), job.getId());
         return applicationRepository.findByJobId(job.getId());
     }
 }

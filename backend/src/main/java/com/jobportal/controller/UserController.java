@@ -1,6 +1,8 @@
 package com.jobportal.controller;
 
 import com.jobportal.dto.CreateUserDto;
+import com.jobportal.dto.UpdateUserDto;
+import jakarta.validation.Valid;
 import com.jobportal.dto.response.UserResponseDto;
 import com.jobportal.entity.User;
 import com.jobportal.service.UserService;
@@ -14,6 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @io.swagger.v3.oas.annotations.tags.Tag(name = "User", description = "Users may read and update their own account without changing role. Listing, creating, deleting accounts, and changing roles require ADMIN.")
+@org.springframework.validation.annotation.Validated
 @RestController
 @RequestMapping("/api/v1/users")
 @CrossOrigin(origins = "*")
@@ -37,7 +40,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Integer id) {
+    public ResponseEntity<UserResponseDto> getUserById(@jakarta.validation.constraints.Positive @PathVariable Integer id) {
         access.requireCurrentUser(id);
         User user = userService.getUserById(id);
         if (user != null) {
@@ -47,7 +50,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponseDto> createUser(@RequestBody CreateUserDto createUserDto) {
+    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody CreateUserDto createUserDto) {
         access.requireAdmin();
         User user = new User();
         user.setEmail(createUserDto.getEmail());
@@ -58,7 +61,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDto> updateUser(@PathVariable Integer id, @RequestBody User userDetails) {
+    public ResponseEntity<UserResponseDto> updateUser(@jakarta.validation.constraints.Positive @PathVariable Integer id, @Valid @RequestBody UpdateUserDto userDetails) {
         access.requireCurrentUser(id);
         User user = userService.getUserById(id);
         if (user != null) {
@@ -75,7 +78,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteUser(@jakarta.validation.constraints.Positive @PathVariable Integer id) {
         access.requireAdmin();
         User user = userService.getUserById(id);
         if (user != null) {

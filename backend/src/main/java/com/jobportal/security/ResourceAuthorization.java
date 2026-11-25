@@ -94,6 +94,8 @@ public class ResourceAuthorization {
         requireAuthenticated(actor);
         require(actor.isAdmin() || actor.role() == User.Role.COMPANY);
         require(actor.isAdmin() || ownsCompany(actor, companyId));
+        if (companyId == null || companyId <= 0) throw new ValidationException("Company ID must be positive");
+        if (!companies.existsById(companyId)) throw new ResourceNotFoundException("Company not found");
     }
 
     private boolean ownsCompany(Actor actor, Integer companyId) {

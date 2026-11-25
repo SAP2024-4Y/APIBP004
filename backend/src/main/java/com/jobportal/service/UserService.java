@@ -40,6 +40,8 @@ public class UserService {
         
         try {
             return userRepository.save(user);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw e;
         } catch (Exception e) {
             throw new com.jobportal.exception.ServiceException("Failed to save user. Please try again later.", e);
         }
@@ -54,6 +56,8 @@ public class UserService {
         
         try {
             userRepository.deleteById(id);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw e;
         } catch (Exception e) {
             throw new com.jobportal.exception.ServiceException("Failed to delete user with ID: " + id + ". Please try again later.", e);
         }

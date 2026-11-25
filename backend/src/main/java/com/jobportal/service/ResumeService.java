@@ -1,119 +1,99 @@
 package com.jobportal.service;
 
 import com.jobportal.entity.Resume;
-import com.jobportal.exception.ResourceNotFoundException;
-import com.jobportal.exception.ServiceException;
+import com.jobportal.exception.*;
 import com.jobportal.repository.ResumeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.io.InputStream;
+import java.nio.file.*;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class ResumeService {
+    private final ResumeRepository resumeRepository;
+    private final CandidateService candidateService;
+    private final Path uploadDir;
 
-    @Autowired
-    private ResumeRepository resumeRepository;
-
-    private final String uploadDir = "backend/src/main/resources/static/resumes/";
-
-    public List<Resume> getAllResumes() {
-        return resumeRepository.findAll();
+    public ResumeService(ResumeRepository resumeRepository, CandidateService candidateService,
+            @Value("$" + "{app.resume.upload-dir:backend/src/main/resources/static/resumes}") String uploadDir) {
+        this.resumeRepository = resumeRepository;
+        this.candidateService = candidateService;
+        this.uploadDir = Paths.get(uploadDir).toAbsolutePath().normalize();
     }
 
+    public List<Resume> getAllResumes() { return resumeRepository.findAll(); }
+
     public Resume getResumeById(Integer id) {
+        if (id == null || id <= 0) throw new ValidationException("Resume ID must be positive");
         return resumeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Resume not found with id: " + id));
     }
 
     public List<Resume> getResumesByCandidateId(Integer candidateId) {
+        candidateService.getCandidateById(candidateId);
         return resumeRepository.findByCandidateId(candidateId);
     }
 
     public Resume getLatestResumeByCandidateId(Integer candidateId) {
+        candidateService.getCandidateById(candidateId);
         Resume resume = resumeRepository.findTopByCandidateIdOrderByUploadedAtDesc(candidateId);
-        if (resume == null) {
-            throw new ResourceNotFoundException("No resume found for candidate with id: " + candidateId);
-        }
+        if (resume == null) throw new ResourceNotFoundException("No resume found for candidate with id: " + candidateId);
         return resume;
     }
 
     public Resume uploadResume(Integer candidateId, MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new ServiceException("File is empty. Please select a valid file.");
+        candidateService.getCandidateById(candidateId);
+        if (file == null || file.isEmpty()) throw new ValidationException("Resume file must not be empty");
+        if (file.getSize() > 5 * 1024 * 1024) throw new PayloadTooLargeException("Resume exceeds 5 MiB");
+        String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        if (extension == null || !Set.of("pdf", "doc", "docx").contains(extension.toLowerCase(Locale.ROOT))) {
+            throw new ValidationException("Only PDF, DOC, and DOCX filename extensions are accepted");
         }
-
-        // Validate file type
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || !isValidFileType(originalFilename)) {
-            throw new ServiceException("Invalid file type. Only PDF, DOC, and DOCX files are allowed.");
-        }
-
-        // Validate file size (5MB max)
-        if (file.getSize() > 5 * 1024 * 1024) {
-            throw new ServiceException("File size exceeds the maximum limit of 5MB.");
-        }
-
+        String filename = "resume_" + candidateId + "_" + UUID.randomUUID() + "." + extension.toLowerCase(Locale.ROOT);
+        Path filePath = uploadDir.resolve(filename);
         try {
-            // Create upload directory if it doesn't exist
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            // Generate unique filename
-            String fileExtension = getFileExtension(originalFilename);
-            String uniqueFilename = "resume_" + candidateId + "_" + UUID.randomUUID().toString() + "." + fileExtension;
-            Path filePath = uploadPath.resolve(uniqueFilename);
-
-            // Copy file to upload directory
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            // Save resume record to database
+            Files.createDirectories(uploadDir);
+            try (InputStream input = file.getInputStream()) { Files.copy(input, filePath); }
             Resume resume = new Resume();
             resume.setCandidateId(candidateId);
-            resume.setFilePath("/static/resumes/" + uniqueFilename);
-
-            return resumeRepository.save(resume);
-
-        } catch (IOException e) {
-            throw new ServiceException("Failed to upload file: " + e.getMessage());
+            resume.setFilePath("/static/resumes/" + filename);
+            // Flush before returning so a rejected record does not leave an orphaned file.
+            return resumeRepository.saveAndFlush(resume);
+        } catch (IOException | RuntimeException ex) {
+            try { Files.deleteIfExists(filePath); } catch (IOException cleanup) { ex.addSuppressed(cleanup); }
+            if (ex instanceof RuntimeException runtime) throw runtime;
+            throw new ServiceException("Failed to store resume", ex);
         }
+    }
+
+    private Path storedPath(Resume resume) {
+        String filename = Paths.get(resume.getFilePath()).getFileName().toString();
+        Path path = uploadDir.resolve(filename).normalize();
+        if (!path.startsWith(uploadDir)) throw new ServiceException("Invalid resume storage path");
+        return path;
+    }
+
+    public Resource downloadResume(Integer id) {
+        Path path = storedPath(getResumeById(id));
+        if (!Files.isRegularFile(path)) throw new ResourceNotFoundException("Resume file was not found");
+        if (!Files.isReadable(path)) throw new ServiceException("Resume file could not be read");
+        return new FileSystemResource(path);
     }
 
     public void deleteResume(Integer id) {
         Resume resume = getResumeById(id);
-        
-        // Delete file from filesystem
-        try {
-            String fileName = Paths.get(resume.getFilePath()).getFileName().toString();
-            Path filePath = Paths.get(uploadDir + fileName);
-            if (Files.exists(filePath)) {
-                Files.delete(filePath);
-            }
-        } catch (IOException e) {
-            // Log warning but don't fail the deletion
-            System.err.println("Warning: Could not delete file: " + e.getMessage());
-        }
-
-        // Delete database record
+        try { Files.deleteIfExists(storedPath(resume)); }
+        catch (IOException ex) { throw new ServiceException("Failed to delete resume file", ex); }
         resumeRepository.deleteById(id);
-    }
-
-    private boolean isValidFileType(String filename) {
-        String extension = getFileExtension(filename).toLowerCase();
-        return extension.equals("pdf") || extension.equals("doc") || extension.equals("docx");
-    }
-
-    private String getFileExtension(String filename) {
-        return StringUtils.getFilenameExtension(filename);
     }
 }

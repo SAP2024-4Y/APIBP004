@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Tag(name = "Jobs", description = "Job management API - Browse, create, update, and delete job postings")
+@org.springframework.validation.annotation.Validated
 @RestController
 @RequestMapping("/api/v1/jobs")
 @CrossOrigin(origins = "*")
@@ -94,14 +95,14 @@ public class JobController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get job by ID")
-    public ResponseEntity<JobResponseDto> getJobById(@PathVariable Integer id) {
+    public ResponseEntity<JobResponseDto> getJobById(@jakarta.validation.constraints.Positive @PathVariable Integer id) {
         Job job = jobService.getJobById(id);
         return ResponseEntity.ok(JobResponseDto.from(job));
     }
 
     @GetMapping("/company/{companyId}")
     @Operation(summary = "Get jobs by company")
-    public List<JobResponseDto> getJobsByCompanyId(@PathVariable Integer companyId) {
+    public List<JobResponseDto> getJobsByCompanyId(@jakarta.validation.constraints.Positive @PathVariable Integer companyId) {
         return jobService.getJobsByCompanyId(companyId).stream()
             .map(JobResponseDto::from)
             .collect(Collectors.toList());
@@ -131,7 +132,7 @@ public class JobController {
     })
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     @PostMapping
-    public ResponseEntity<JobResponseDto> createJob(@RequestBody CreateJobDto createJobDto) {
+    public ResponseEntity<JobResponseDto> createJob(@jakarta.validation.Valid @RequestBody CreateJobDto createJobDto) {
         access.requireCompanyOwner(createJobDto.getCompanyId());
         Job job = new Job();
         job.setCompanyId(createJobDto.getCompanyId());
@@ -150,9 +151,10 @@ public class JobController {
                security = @SecurityRequirement(name = "Bearer Authentication"))
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<JobResponseDto> updateJob(@PathVariable Integer id, @RequestBody Job jobDetails) {
+    public ResponseEntity<JobResponseDto> updateJob(@jakarta.validation.constraints.Positive @PathVariable Integer id, @jakarta.validation.Valid @RequestBody com.jobportal.dto.UpdateJobDto jobDetails) {
         access.requireJobOwner(id);
-        Job job = jobService.getJobById(id);
+        Job job = new Job();
+        org.springframework.beans.BeanUtils.copyProperties(jobService.getJobById(id), job);
         if (jobDetails.getCompanyId() != null && !jobDetails.getCompanyId().equals(job.getCompanyId())) {
             throw new AccessDeniedException("Job ownership cannot be changed");
         }
@@ -174,7 +176,7 @@ public class JobController {
                security = @SecurityRequirement(name = "Bearer Authentication"))
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteJob(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteJob(@jakarta.validation.constraints.Positive @PathVariable Integer id) {
         access.requireJobOwner(id);
         jobService.deleteJob(id);
         return ResponseEntity.noContent().build();

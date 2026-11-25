@@ -1,69 +1,43 @@
 package com.jobportal.filter;
 
+import com.jobportal.exception.ApiErrorWriter;
 import jakarta.servlet.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.core.annotation.Order;
+import jakarta.servlet.http.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
-@Order(1)
 public class RateLimitFilter implements Filter {
-
-    private static final int REQUESTS_PER_MINUTE = 60;
-    private static final long WINDOW_MS = 60_000L;
-
-    private final ConcurrentHashMap<String, long[]> ipCounters = new ConcurrentHashMap<>();
-
+    private final ApiErrorWriter errors;
+    private final int limit;
+    private final ConcurrentHashMap<String, Window> counters = new ConcurrentHashMap<>();
+    private record Window(long started, long count) {}
+    public RateLimitFilter(ApiErrorWriter errors, @Value("$" + "{app.ratelimit.requests-per-minute:60}") int limit) {
+        if (limit < 1) throw new IllegalArgumentException("Rate limit must be positive");
+        this.errors = errors;
+        this.limit = limit;
+    }
     @Override
-    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-            throws IOException, ServletException {
-
-        HttpServletRequest httpReq = (HttpServletRequest) req;
-        HttpServletResponse httpRes = (HttpServletResponse) res;
-
-        String ip = getClientIp(httpReq);
+    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+        HttpServletRequest request = (HttpServletRequest) req;
+        HttpServletResponse response = (HttpServletResponse) res;
         long now = Instant.now().toEpochMilli();
-
-        long[] windowData = ipCounters.compute(ip, (key, existing) -> {
-            if (existing == null || (now - existing[0]) > WINDOW_MS) {
-                return new long[]{now, 1};
-            }
-            existing[1]++;
-            return existing;
-        });
-
-        long windowStart = windowData[0];
-        long count = windowData[1];
-        long remaining = Math.max(0, REQUESTS_PER_MINUTE - count);
-        long resetEpochSec = (windowStart + WINDOW_MS) / 1000;
-
-        httpRes.setHeader("RateLimit-Limit", String.valueOf(REQUESTS_PER_MINUTE));
-        httpRes.setHeader("RateLimit-Remaining", String.valueOf(remaining));
-        httpRes.setHeader("RateLimit-Reset", String.valueOf(resetEpochSec));
-
-        if (count > REQUESTS_PER_MINUTE) {
-            httpRes.setStatus(429);
-            httpRes.setContentType("application/json");
-            httpRes.setHeader("Retry-After", String.valueOf(resetEpochSec - (now / 1000)));
-            httpRes.getWriter().write("{\"error\":\"RATE_LIMITED\",\"message\":\"Too many requests. Limit: "
-                + REQUESTS_PER_MINUTE + " per minute.\"}");
+        Window window = counters.compute(request.getRemoteAddr(), (ip, old) ->
+                old == null || now - old.started() >= 60_000 ? new Window(now, 1) : new Window(old.started(), old.count() + 1));
+        long reset = (window.started() + 60_000 + 999) / 1000;
+        response.setHeader("RateLimit-Limit", Integer.toString(limit));
+        response.setHeader("RateLimit-Remaining", Long.toString(Math.max(0, limit - window.count())));
+        response.setHeader("RateLimit-Reset", Long.toString(reset));
+        if (window.count() > limit) {
+            response.setHeader("Retry-After", Long.toString(Math.max(1, reset - now / 1000)));
+            errors.write(request, response, HttpStatus.TOO_MANY_REQUESTS, "RATE_LIMITED",
+                    "Too many requests. Limit: " + limit + " per minute.");
             return;
         }
-
         chain.doFilter(req, res);
-    }
-
-    private String getClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
     }
 }

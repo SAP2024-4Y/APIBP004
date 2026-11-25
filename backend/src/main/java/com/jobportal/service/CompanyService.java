@@ -51,6 +51,8 @@ public class CompanyService {
         
         try {
             return companyRepository.save(company);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw e;
         } catch (Exception e) {
             throw new com.jobportal.exception.ServiceException("Failed to save company profile. Please try again later.", e);
         }
@@ -66,6 +68,8 @@ public class CompanyService {
         
         try {
             companyRepository.deleteById(id);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw e;
         } catch (Exception e) {
             throw new com.jobportal.exception.ServiceException("Failed to delete company with ID: " + id + ". Please try again later.", e);
         }

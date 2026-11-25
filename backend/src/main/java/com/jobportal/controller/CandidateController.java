@@ -1,10 +1,11 @@
 package com.jobportal.controller;
 
 import com.jobportal.entity.User.Role;
-import com.jobportal.exception.ValidationException;
 import org.springframework.security.access.AccessDeniedException;
 
 import com.jobportal.entity.Candidate;
+import com.jobportal.dto.CreateCandidateDto;
+import jakarta.validation.Valid;
 import com.jobportal.service.CandidateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.jobportal.security.ResourceAuthorization;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @io.swagger.v3.oas.annotations.tags.Tag(name = "Candidate", description = "Candidates manage their own profile. Companies may read candidates who applied to their jobs. ADMIN may manage all profiles and list candidates.")
+@org.springframework.validation.annotation.Validated
 @RestController
 @RequestMapping("/api/v1/candidates")
 @CrossOrigin(origins = "*")
@@ -31,7 +33,7 @@ public class CandidateController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Candidate> getCandidateById(@PathVariable Integer id) {
+    public ResponseEntity<Candidate> getCandidateById(@jakarta.validation.constraints.Positive @PathVariable Integer id) {
         access.requireCandidateReader(id);
         Candidate candidate = candidateService.getCandidateById(id);
         if (candidate != null) {
@@ -41,7 +43,7 @@ public class CandidateController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<Candidate> getCandidateByUserId(@PathVariable Integer userId) {
+    public ResponseEntity<Candidate> getCandidateByUserId(@jakarta.validation.constraints.Positive @PathVariable Integer userId) {
         access.requireCurrentUser(userId);
         Candidate candidate = candidateService.getCandidateByUserId(userId);
         if (candidate != null) {
@@ -51,14 +53,20 @@ public class CandidateController {
     }
 
     @PostMapping
-    public Candidate createCandidate(@RequestBody Candidate candidate) {
-        if (candidate.getId() != null) throw new ValidationException("New candidate must not specify an ID");
+    public Candidate createCandidate(@Valid @RequestBody CreateCandidateDto request) {
+        Candidate candidate = new Candidate();
+        candidate.setUserId(request.getUserId());
+        candidate.setFullName(request.getFullName());
+        candidate.setPhone(request.getPhone());
+        candidate.setLocation(request.getLocation());
+        candidate.setExperience(request.getExperience());
+
         candidate.setUserId(access.profileOwner(candidate.getUserId(), Role.CANDIDATE));
         return candidateService.saveCandidate(candidate);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Candidate> updateCandidate(@PathVariable Integer id, @RequestBody Candidate candidateDetails) {
+    public ResponseEntity<Candidate> updateCandidate(@jakarta.validation.constraints.Positive @PathVariable Integer id, @Valid @RequestBody CreateCandidateDto candidateDetails) {
         access.requireCandidateOwner(id);
         Candidate candidate = candidateService.getCandidateById(id);
         if (candidate != null) {
@@ -75,7 +83,7 @@ public class CandidateController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCandidate(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteCandidate(@jakarta.validation.constraints.Positive @PathVariable Integer id) {
         access.requireCandidateOwner(id);
         Candidate candidate = candidateService.getCandidateById(id);
         if (candidate != null) {

@@ -82,11 +82,15 @@ public class JobService {
             String status, String category, Integer minPrice, Integer maxPrice,
             String after, int limit, String sortField, String order) {
 
+        validatePageSize(limit);
+        validateFilters(status, minPrice, maxPrice);
+        if (order != null && !java.util.Set.of("asc", "desc").contains(order.toLowerCase(java.util.Locale.ROOT))) throw new ValidationException("order must be asc or desc");
         Integer afterId = null;
         if (after != null && !after.isBlank()) {
             try {
                 String decoded = new String(Base64.getDecoder().decode(after));
                 afterId = Integer.parseInt(decoded);
+                if (afterId <= 0) throw new ValidationException("Cursor ID must be positive");
             } catch (Exception e) {
                 throw new ValidationException("Invalid cursor value in 'after' parameter");
             }
@@ -137,6 +141,8 @@ public class JobService {
     }
 
     public List<Job> findJobsWithinRadius(double lat, double lon, double radiusKm) {
+        validateCoordinates(lat, lon);
+        if (!Double.isFinite(radiusKm) || radiusKm <= 0) throw new ValidationException("radius_km must be positive and finite");
         // Use bounding box first then filter with Haversine
         double latDelta = radiusKm / EARTH_RADIUS_KM * (180.0 / Math.PI);
         double lonDelta = latDelta / Math.cos(Math.toRadians(lat));
@@ -151,6 +157,9 @@ public class JobService {
     }
 
     public List<Job> findJobsInBoundingBox(double minLat, double minLon, double maxLat, double maxLon) {
+        validateCoordinates(minLat, minLon);
+        validateCoordinates(maxLat, maxLon);
+        if (minLat > maxLat || minLon > maxLon) throw new ValidationException("Bounding-box minimums must not exceed maximums");
         return jobRepository.findByBoundingBox(minLat, minLon, maxLat, maxLon);
     }
 
@@ -170,6 +179,8 @@ public class JobService {
         validateJob(job);
         try {
             return jobRepository.save(job);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw e;
         } catch (Exception e) {
             throw new com.jobportal.exception.ServiceException("Failed to save job posting. Please try again later.", e);
         }
@@ -183,6 +194,8 @@ public class JobService {
         getJobById(id);
         try {
             jobRepository.deleteById(id);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw e;
         } catch (Exception e) {
             throw new com.jobportal.exception.ServiceException("Failed to delete job with ID: " + id + ". Please try again later.", e);
         }
@@ -194,9 +207,25 @@ public class JobService {
     }
 
     public List<Job> findForGraphQL(String status, String category, Integer minPrice, Integer maxPrice, int first, Integer afterId) {
+        validateFilters(status, minPrice, maxPrice);
         Sort sort = Sort.by(Sort.Direction.ASC, "id");
         Pageable pageable = PageRequest.of(0, first, sort);
         return jobRepository.findWithFiltersAndCursor(status, category, minPrice, maxPrice, afterId, pageable);
+    }
+
+    public static void validatePageSize(int size) {
+        if (size < 1 || size > 100) throw new ValidationException("Page size must be between 1 and 100");
+    }
+
+    private void validateFilters(String status, Integer minSalary, Integer maxSalary) {
+        if (status != null && !java.util.Set.of("OPEN", "CLOSED", "DRAFT").contains(status)) throw new ValidationException("status must be OPEN, CLOSED, or DRAFT");
+        if ((minSalary != null && minSalary < 0) || (maxSalary != null && maxSalary < 0)) throw new ValidationException("Salary values must be nonnegative");
+        if (minSalary != null && maxSalary != null && minSalary > maxSalary) throw new ValidationException("Minimum salary must not exceed maximum salary");
+    }
+
+    private void validateCoordinates(double lat, double lon) {
+        if (!Double.isFinite(lat) || !Double.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180)
+            throw new ValidationException("Latitude must be between -90 and 90; longitude between -180 and 180");
     }
 
     private void validateJob(Job job) {
@@ -218,5 +247,14 @@ public class JobService {
         if (job.getDescription().length() < 20) {
             throw new ValidationException("Job description must be at least 20 characters long");
         }
+        if (job.getTitle().length() > 255) throw new ValidationException("Job title must not exceed 255 characters");
+        for (String value : new String[]{job.getLocation(), job.getCategory(), job.getSalaryRange()}) {
+            if (value != null && value.length() > 255) throw new ValidationException("Job text field exceeds 255 characters");
+        }
+        validateFilters(job.getStatus(), job.getMinSalary(), job.getMaxSalary());
+        if (job.getEmploymentType() != null && !java.util.Set.of("FULL_TIME", "PART_TIME", "CONTRACT", "INTERNSHIP", "FREELANCE", "Full-time", "Part-time", "Contract", "Internship", "Freelance").contains(job.getEmploymentType()))
+            throw new ValidationException("Unsupported employmentType");
+        if ((job.getLatitude() == null) != (job.getLongitude() == null)) throw new ValidationException("Supply both latitude and longitude");
+        if (job.getLatitude() != null) validateCoordinates(job.getLatitude(), job.getLongitude());
     }
 }

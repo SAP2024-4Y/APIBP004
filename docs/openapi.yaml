@@ -97,6 +97,12 @@ paths:
     post:
       operationId: register
       summary: Register a new user
+      description: |
+        Public endpoint for candidates and company representatives to create an
+        account and obtain a JWT. Only CANDIDATE and COMPANY roles are accepted.
+        ADMIN registration returns HTTP 400 without creating an account or issuing
+        a token. Administrative accounts must be provisioned through an authorized
+        administrative process or development seeding.
       tags: [Auth]
       requestBody:
         required: true
@@ -113,8 +119,49 @@ paths:
                 $ref: '#/components/schemas/AuthResponse'
         '409':
           $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+        '400':
+          description: Invalid registration fields or disallowed role
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [timestamp, status, error, message, path]
+                properties:
+                  timestamp:
+                    type: string
+                    description: Server-local timestamp of the validation failure
+                  status:
+                    type: integer
+                    enum: [400]
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  path:
+                    type: string
+                  details:
+                    type: [array, 'null']
+                    items:
+                      type: string
+              examples:
+                adminRegistrationRejected:
+                  summary: ADMIN cannot register through the public endpoint
+                  value:
+                    timestamp: '2026-11-25T10:00:00'
+                    status: 400
+                    error: Validation Error
+                    message: Public registration only supports CANDIDATE and COMPANY roles
+                    path: /api/v1/auth/register
+                    details: null
+                missingRole:
+                  summary: A registration role is required
+                  value:
+                    timestamp: '2026-11-25T10:00:00'
+                    status: 400
+                    error: Validation Failed
+                    message: Input validation failed for one or more fields
+                    path: /api/v1/auth/register
+                    details: ['role: Role is required']
 
   /api/v1/jobs:
     get:
@@ -582,7 +629,8 @@ components:
           format: email
         password:
           type: string
-          minLength: 8
+          minLength: 6
+          description: Password must contain at least six characters
         role:
           type: string
           enum: [CANDIDATE, COMPANY]

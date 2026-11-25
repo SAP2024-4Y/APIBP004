@@ -17,7 +17,7 @@ Course: API Based Products
 ## Quick start
 
 ```bash
-git clone https://github.com/<course-org>/APIBP004
+git clone https://github.com/SAP2024-4Y/APIBP004
 cd APIBP004
 docker compose up --build
 # Server:        http://localhost:8080
@@ -93,40 +93,17 @@ curl "http://localhost:8080/api/v1/jobs/map?min_lat=40.4&min_lon=-74.3&max_lat=4
 
 ### Calendar API (interview slots)
 
-```bash
-# List slots in a time window
-curl "http://localhost:8080/api/v1/slots?starts_at=2026-12-01T00:00:00Z&ends_at=2026-12-31T23:59:59Z"
+~~~sh
+curl "http://localhost:8080/api/v1/slots?starts_at=2030-01-01T00:00:00Z&ends_at=2030-02-01T00:00:00Z"
+~~~
 
-# Book a slot (requires auth — 409 if conflict)
-curl -X POST http://localhost:8080/api/v1/slots \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"jobId":1,"startsAt":"2026-12-15T10:00:00Z","endsAt":"2026-12-15T11:00:00Z"}'
-```
+Creating jobs requires the owning COMPANY or ADMIN; candidates book for themselves. Use the [executable walkthrough](docs/api-walkthrough.md) to register synthetic accounts, create profiles, capture IDs/tokens, post a job, apply, review, and schedule. It also verifies the 5 km GraphQL query and expected errors:
 
-### Create a job (company role required)
+~~~sh
+python3 scripts/api-walkthrough.py
+~~~
 
-```bash
-curl -X POST http://localhost:8080/api/v1/jobs \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "companyId": 1,
-    "title": "Senior Backend Engineer",
-    "description": "Building scalable APIs for our platform.",
-    "category": "Technology",
-    "status": "OPEN",
-    "location": "San Francisco, CA",
-    "minSalary": 120000,
-    "maxSalary": 160000,
-    "employmentType": "Full-time",
-    "skillsRequired": "Java, Spring Boot, PostgreSQL",
-    "latitude": 37.7749,
-    "longitude": -122.4194,
-    "startsAt": "2026-12-20T09:00:00Z",
-    "endsAt": "2026-12-20T10:00:00Z"
-  }'
-```
+Run it against a disposable demo stack. It creates records, removes its application/slot at the end, and leaves the company, candidate, job, and accounts for inspection. It never prints tokens or passwords.
 
 ---
 
@@ -175,30 +152,33 @@ mutation {
 
 ## Running tests locally
 
-### With Maven (requires Java 21 + PostgreSQL or uses H2 test profile)
+From the repository root, with Java 21 and Maven 3.9+:
 
-```bash
-cd backend
-mvn test
-```
+~~~sh
+mvn -B -f backend/pom.xml -Duser.timezone=Asia/Kolkata verify
+~~~
 
-### Full integration test with Docker
+The full suite uses isolated, migrated H2 databases and random HTTP ports. No running API, external PostgreSQL, or Maven integration-test profile is required. Contract snapshots are compared without regeneration.
 
-```bash
-docker compose up -d
-# Wait for healthy status
-curl http://localhost:8080/health
-# Run tests against running service
-mvn verify -Pintegration-test
-docker compose down
-```
+For the five PostgreSQL regression suites, Docker Compose provides separate disposable databases:
+
+~~~sh
+docker compose -p jobportal-tests -f compose.test.yml up -d --wait
+bash scripts/test-postgres.sh
+docker compose -p jobportal-tests -f compose.test.yml down
+~~~
+
+The test databases use port 55443 and temporary storage. Tests delete their fixtures; do not point them at application data. See [test setup and CI](docs/testing.md) for ports, suite coverage, and troubleshooting.
 
 ### CI pipeline
 
-Every Pull Request triggers `.github/workflows/ci.yml` which:
-1. Spins up PostgreSQL as a service container
-2. Runs `mvn verify` (build + unit + integration tests)
-3. Runs a Docker Compose smoke test probing `/health`, `/api/v1/auth/token`, and the list/map/calendar endpoints
+[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on pull requests and pushes to main:
+
+1. Java 21 build and full H2 regression suite, including OpenAPI/GraphQL contract checks.
+2. PostgreSQL 15 suites covering schema/seeds, discovery/geography, scheduling/application lifecycle, API contracts, and authorization.
+3. A separate Docker Compose demo stack running the same executable candidate/company/admin walkthrough documented above.
+
+CI uploads test reports and demo-stack logs, then removes its disposable stack. It requires no repository secrets and does not regenerate contract snapshots.
 
 ---
 
@@ -240,7 +220,7 @@ REST and GraphQL share role and resource-ownership checks. See [the access matri
 | `/api/v1/auth/register` | POST | No | Register account |
 | `/api/v1/jobs` | GET | No | List jobs (cursor pagination) |
 | `/api/v1/jobs/{id}` | GET | No | Get job |
-| `/api/v1/jobs` | POST | COMPANY | Create job |
+| `/api/v1/jobs` | POST | Owning COMPANY or ADMIN | Create job |
 | `/api/v1/jobs/map` | GET | No | Geospatial job search |
 | `/api/v1/slots` | GET | No | List interview slots |
 | `/api/v1/slots` | POST | Auth | Book a slot |

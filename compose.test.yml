@@ -1,0 +1,19 @@
+# Standalone disposable database setup, not an override of the application stack.
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: jobportal_test
+      POSTGRES_PASSWORD: local-test-only
+      POSTGRES_DB: postgres
+    ports:
+      - "127.0.0.1:${TEST_DB_PORT:-55443}:5432"
+    volumes:
+      - ./database/test/create-databases.sql:/docker-entrypoint-initdb.d/create-databases.sql:ro
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobportal_test -d postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 30

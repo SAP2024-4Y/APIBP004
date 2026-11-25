@@ -1,0 +1,14 @@
+# Opt-in: docker compose -f docker-compose.yml -f compose.bulk.yml up --build
+services:
+  backend:
+    environment:
+      APP_SEED_MODE: bulk
+      APP_SEED_COMPANIES: "${SEED_COMPANIES:-100}"
+      APP_SEED_CANDIDATES: "${SEED_CANDIDATES:-500}"
+      APP_SEED_JOBS: "${SEED_JOBS:-1000}"
+      APP_SEED_APPLICATIONS: "${SEED_APPLICATIONS:-2000}"
+      APP_SEED_SLOTS: "${SEED_SLOTS:-500}"
+      APP_SEED_RESUMES: "${SEED_RESUMES:-500}"
+      APP_SEED_RANDOM_SEED: "${SEED_RANDOM_SEED:-42}"
+      APP_SEED_BASE_TIME: "${SEED_BASE_TIME:-2027-01-01T09:00:00}"
+      APP_EMAIL_ENABLED: "false"

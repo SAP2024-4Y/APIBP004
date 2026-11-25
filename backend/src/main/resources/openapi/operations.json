@@ -1453,7 +1453,7 @@
     },
     "DELETE /api/v1/jobs/{id}": {
       "summary": "Delete a job posting",
-      "description": "Use case: Delete a job posting.\n\nConsumers: recruiter dashboard.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Permanently deletes the job. Related-record cleanup is not guaranteed by the current scalar-ID model.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "description": "Use case: Delete a job posting.\n\nConsumers: recruiter dashboard.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Permanently deletes the job. Foreign keys reject deletion while dependent records exist (400 DATA_INTEGRITY_ERROR). Delete dependent records explicitly first.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
       "public": false,
       "status": "204",
       "successDescription": "Completed with no response body",
@@ -1841,7 +1841,7 @@
     },
     "DELETE /api/v1/companies/{id}": {
       "summary": "Delete a company profile",
-      "description": "Use case: Delete a company profile.\n\nConsumers: company profile screens.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Permanently deletes the profile. Related-record cleanup is not guaranteed by the current scalar-ID model.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "description": "Use case: Delete a company profile.\n\nConsumers: company profile screens.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Permanently deletes the profile. Foreign keys reject deletion while dependent records exist (400 DATA_INTEGRITY_ERROR). Delete dependent records explicitly first.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
       "public": false,
       "status": "204",
       "successDescription": "Completed with no response body",
@@ -2192,7 +2192,7 @@
     },
     "DELETE /api/v1/candidates/{id}": {
       "summary": "Delete a candidate profile",
-      "description": "Use case: Delete a candidate profile.\n\nConsumers: candidate profile screens.\n\nRoles and ownership: Owning CANDIDATE or ADMIN.\n\nWorkflow and side effects: Permanently deletes the profile. Related-record cleanup is not guaranteed by the current scalar-ID model.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "description": "Use case: Delete a candidate profile.\n\nConsumers: candidate profile screens.\n\nRoles and ownership: Owning CANDIDATE or ADMIN.\n\nWorkflow and side effects: Permanently deletes the profile. Foreign keys reject deletion while dependent records exist (400 DATA_INTEGRITY_ERROR). Delete dependent records explicitly first.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
       "public": false,
       "status": "200",
       "successDescription": "Completed with no response body",
@@ -2475,7 +2475,7 @@
     },
     "DELETE /api/v1/users/{id}": {
       "summary": "Delete a user account",
-      "description": "Use case: Delete a user account.\n\nConsumers: administration console.\n\nRoles and ownership: ADMIN only.\n\nWorkflow and side effects: Permanently deletes the account. Related-record cleanup is not guaranteed by the current scalar-ID model.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "description": "Use case: Delete a user account.\n\nConsumers: administration console.\n\nRoles and ownership: ADMIN only.\n\nWorkflow and side effects: Permanently deletes the account. Foreign keys reject deletion while dependent records exist (400 DATA_INTEGRITY_ERROR). Delete dependent records explicitly first.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
       "public": false,
       "status": "204",
       "successDescription": "Completed with no response body",

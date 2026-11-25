@@ -28,7 +28,11 @@ public class GraphQLExceptionHandler implements GraphQLErrorHandler {
             exception = exception.getCause();
         }
         String code = resolveCode(exception);
-        String message = "INTERNAL_ERROR".equals(code) ? "An unexpected error occurred" : exception.getMessage();
+        String message = switch (code) {
+            case "INTERNAL_ERROR" -> "An unexpected error occurred";
+            case "DATA_INTEGRITY_ERROR" -> "Request conflicts with database constraints";
+            default -> exception.getMessage();
+        };
         return GraphqlErrorBuilder.newError()
                 .message(message == null ? "An error occurred" : message)
                 .path(error.getPath())
@@ -44,6 +48,7 @@ public class GraphQLExceptionHandler implements GraphQLErrorHandler {
         if (ex instanceof ValidationException || ex instanceof IllegalArgumentException || ex instanceof java.time.format.DateTimeParseException) return "VALIDATION_ERROR";
         if (ex instanceof AccessDeniedException) return "FORBIDDEN";
         if (ex instanceof DuplicateResourceException) return "DUPLICATE_RESOURCE";
+        if (ex instanceof org.springframework.dao.DataIntegrityViolationException) return "DATA_INTEGRITY_ERROR";
         return "INTERNAL_ERROR";
     }
 }

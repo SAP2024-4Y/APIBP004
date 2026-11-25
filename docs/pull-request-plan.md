@@ -6,7 +6,7 @@ Related issues are grouped into seven pull requests, including the merged regist
 | --- | --- | --- |
 | 1 | Restrict public registration roles — merged as PR #34 | #27 |
 | 2 | Shared REST and GraphQL authorization, resource ownership, and private fields — merged as PR #35 | #25, #26 |
-| 3 | API contracts: Swagger/OpenAPI and GraphQL schema consistency, descriptions, examples, validation, errors, resume handling, and rate-limit documentation | #6, #7, #8, #9, #10, #11, #16, #30, #31 |
+| 3 | Merged as PR #36 — API contracts: Swagger/OpenAPI and GraphQL schema consistency, descriptions, examples, validation, errors, resume handling, and rate-limit documentation | #6, #7, #8, #9, #10, #11, #16, #30, #31 |
 | 4 | Database schema, entity documentation, valid seed relationships, and bulk data | #12, #13, #14, #15 |
 | 5 | Job fields, salary semantics, filtering, pagination, and geographic search | #17, #18, #19, #20, #21, #22, #29 |
 | 6 | UTC timestamps, scheduling rules, and application lifecycle | #23, #24, #28 |
@@ -58,3 +58,24 @@ Closes #11
 Closes #16
 Closes #30
 Closes #31
+
+## PR 4
+
+Title: **Unify database migrations and add reproducible bulk demo data**
+
+Branch: fix/database-schema-and-demo-data
+
+Description:
+
+Flyway now provides one maintained schema for local and Docker startup, and Hibernate validates it without dropping data. The migration includes every current entity field, foreign keys, uniqueness checks, and relevant value constraints. Parent deletion is rejected while dependents exist, with documented REST and GraphQL errors. An ER diagram and complete data dictionary describe resource IDs, relationships, defaults, nullability, and current enforcement limits.
+
+The replacement seeder supports explicit off/demo/bulk modes, configurable counts, fixed random/time settings, applications, and downloadable synthetic PDF resumes. A transactional seed ledger uses actual persisted IDs, preserves existing records/passwords, repairs missing records/files, and serializes concurrent runs. Default bulk data includes 1,000 jobs, 100 companies, 500 candidates, 2,000 applications, 500 slots, and 500 resumes, with fixtures on both sides of a known 5 km boundary.
+
+Compose persists database and resume data and supports isolated projects without fixed container names. Existing nonempty databases without Flyway history require explicit handling; they are not silently baselined or overwritten. Setup, reset, credentials, and manual checks are documented in docs/database-and-demo-data.md.
+
+Validation: 77 tests passed in the full suite, including contract snapshot consistency and migrated H2 schemas. All 10 schema/seed tests also passed against an isolated PostgreSQL 15 container. The bulk Compose configuration validates. The temporary PostgreSQL container was removed after verification; the user's existing containers and volumes were not modified.
+
+Closes #12
+Closes #13
+Closes #14
+Closes #15

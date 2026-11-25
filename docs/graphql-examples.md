@@ -107,6 +107,8 @@ GraphQL execution normally returns HTTP 200 even if the response contains errors
 }
 ~~~
 
-The example omits source locations, which depend on query formatting. Application codes include VALIDATION_ERROR, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, DUPLICATE_RESOURCE, SLOT_CONFLICT, and INTERNAL_ERROR. Syntax/schema validation errors retain GraphQL's native format and do not necessarily have an application code. HTTP 429 is a transport error with the shared REST error body and Retry-After header.
+The example omits source locations, which depend on query formatting. Application codes include VALIDATION_ERROR, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, DUPLICATE_RESOURCE, SLOT_CONFLICT, DATA_INTEGRITY_ERROR, and INTERNAL_ERROR. Syntax/schema validation errors retain GraphQL's native format and do not necessarily have an application code. HTTP 429 is a transport error with the shared REST error body and Retry-After header.
 
 Queries: jobs, job, companies, company, jobsNear, jobsInBox, slots. Mutations: login, createJob, updateJob, deleteJob, createSlot. There are no implemented myApplications, applyForJob, or cancelSlot operations; use the corresponding REST application and slot deletion endpoints. The complete supported types and inputs are in [schema.graphql](schema.graphql).
+
+Foreign keys reject deletion of a job that still has applications or slots. GraphQL returns DATA_INTEGRITY_ERROR with a generic message; underlying SQL and constraint details are not exposed. Delete dependent records through their authorized REST operations first.

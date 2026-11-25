@@ -43,14 +43,14 @@ analytics dashboards that use GraphQL to fetch composite views in a single round
 | `User` | Root identity; owns a `Candidate` or `Company` profile |
 | `Company` | Has many `Job` postings; linked to a `User` |
 | `Job` | Belongs to a `Company`; has many `Application`s and `InterviewSlot`s; carries geospatial coordinates |
-| `Candidate` | Belongs to a `User`; has many `Application`s |
+| Candidate | Belongs to a User; has many Applications and Resumes |
+| Resume | Belongs to a Candidate; stores metadata for an authenticated download |
 | `Application` | Links a `Candidate` to a `Job`; carries status lifecycle |
 | `InterviewSlot` | Belongs to a `Job`; carries a time window; enforces non-overlap |
 
-The `Job` resource is the central entity: it unifies the List API (filterable by status,
-category, salary), the Map API (geospatial coordinates), and the Calendar API (startsAt /
-endsAt scheduling window). This keeps cross-cutting concerns cohesive without requiring
-separate microservices.
+Job discovery and maps use Job. Calendar operations use separate InterviewSlot records; job-level startsAt/endsAt are not bookings. See the [ER diagram and field dictionary](entities.md) for persisted resources and constraints.
+
+Flyway migrations are authoritative for local and Docker startup. Hibernate validates without creating/dropping tables. Foreign keys reject parent deletion while dependents exist. Demo/bulk seeding is explicit, deterministic, transactional, and recoverable; see [database setup](database-and-demo-data.md).
 
 ---
 

@@ -12,7 +12,7 @@ From the repository root, run:
 docker compose up --build
 ~~~
 
-The existing compose configuration uses Hibernate `create-drop`: restarting the API can reset the demo database. This PR does not change database initialization. The automated tests below use isolated H2 databases and temporary upload directories; they do not connect to the compose database.
+Compose uses Flyway migrations and Hibernate validation; restarts preserve data. See [database setup](database-and-demo-data.md) before switching an existing unversioned database to this branch. The automated tests below use isolated H2 databases and temporary upload directories; they do not connect to the compose database.
 
 Open `/docs`, expand an operation, and inspect its use case, consumers, roles/ownership, workflow, request schema, response examples, and applicable errors. Authentication is optional for public discovery. Use **Authorize** and enter a JWT for protected operations.
 
@@ -86,7 +86,7 @@ For a manual quota check, call `/health` repeatedly with `curl -i`, stop at 429,
 
 Dedicated REST request DTOs define required fields, length bounds, and enums. Password creation/update uses 6–72 characters; omitting an update password preserves it. IDs must be positive. Salaries must be nonnegative with minimum no greater than maximum. Job status is OPEN, CLOSED, or DRAFT. Employment type accepts FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP, FREELANCE and the existing Full-time, Part-time, Contract, Internship, Freelance spellings. Shared job service checks also apply to GraphQL mutations.
 
-REST ignores unknown JSON fields. New profile/application IDs are explicitly rejected; server status/timestamps are assigned independently. GraphQL rejects unknown input fields. Relationship checks require existing users with the matching role for profiles, existing companies for job creation, existing jobs/candidates for applications, slots, and resumes. Ownership checks can return 403 before revealing whether a record exists. Schema-level database foreign keys are addressed separately.
+REST ignores unknown JSON fields. New profile/application IDs are explicitly rejected; server status/timestamps are assigned independently. GraphQL rejects unknown input fields. Relationship checks require existing users with the matching role for profiles, existing companies for job creation, existing jobs/candidates for applications, slots, and resumes. Ownership checks can return 403 before revealing whether a record exists. Database foreign keys enforce these relationships; deleting a parent with dependents returns 400 DATA_INTEGRITY_ERROR.
 
 The contracts describe current behavior: REST legacy job searches may return arrays and ignore skills; cursor traversal across non-ID sorts needs further work. GraphQL companies ignores after, and jobs ignores sort/order. REST job creation does not yet accept numeric salaries, coordinates, category, or job time fields; GraphQL job time inputs are currently ignored. Domain timestamps are local date-time strings without offsets; the error timestamp alone is an Instant in UTC. Scheduling/application lifecycle rules and UTC normalization remain separate planned changes.
 

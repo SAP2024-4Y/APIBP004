@@ -5,18 +5,22 @@ import com.jobportal.dto.response.UserResponseDto;
 import com.jobportal.entity.User;
 import com.jobportal.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.jobportal.security.ResourceAuthorization;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@io.swagger.v3.oas.annotations.tags.Tag(name = "User", description = "Users may read and update their own account without changing role. Listing, creating, deleting accounts, and changing roles require ADMIN.")
 @RestController
 @RequestMapping("/api/v1/users")
 @CrossOrigin(origins = "*")
 public class UserController {
+
+    @Autowired
+    private ResourceAuthorization access;
 
     @Autowired
     private UserService userService;
@@ -24,17 +28,17 @@ public class UserController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<UserResponseDto> getAllUsers() {
+        access.requireAdmin();
         return userService.getAllUsers().stream()
             .map(UserResponseDto::from)
             .collect(Collectors.toList());
     }
 
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable Integer id) {
+        access.requireCurrentUser(id);
         User user = userService.getUserById(id);
         if (user != null) {
             return ResponseEntity.ok(UserResponseDto.from(user));
@@ -42,9 +46,9 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<UserResponseDto> createUser(@RequestBody CreateUserDto createUserDto) {
+        access.requireAdmin();
         User user = new User();
         user.setEmail(createUserDto.getEmail());
         user.setPassword(passwordEncoder.encode(createUserDto.getPassword())); // ENCODE PASSWORD
@@ -53,25 +57,26 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(UserResponseDto.from(savedUser));
     }
 
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDto> updateUser(@PathVariable Integer id, @RequestBody User userDetails) {
+        access.requireCurrentUser(id);
         User user = userService.getUserById(id);
         if (user != null) {
+            access.requireUnchangedRole(userDetails.getRole(), user.getRole());
             user.setEmail(userDetails.getEmail());
             // Only update password if provided and encode it
             if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
                 user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
             }
-            user.setRole(userDetails.getRole());
+            if (userDetails.getRole() != null) user.setRole(userDetails.getRole());
             return ResponseEntity.ok(UserResponseDto.from(userService.saveUser(user)));
         }
         return ResponseEntity.notFound().build();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
+        access.requireAdmin();
         User user = userService.getUserById(id);
         if (user != null) {
             userService.deleteUser(id);

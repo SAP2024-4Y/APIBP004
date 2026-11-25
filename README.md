@@ -215,6 +215,10 @@ See [`docs/ADR.md`](docs/ADR.md) for the full Architecture Decision Record and
 
 ---
 
+## Authorization
+
+REST and GraphQL share role and resource-ownership checks. See [the access matrix and manual verification guide](docs/authorization.md) for permitted operations, private fields, and authentication errors.
+
 ## Key endpoints summary
 
 | Endpoint | Method | Auth | Description |

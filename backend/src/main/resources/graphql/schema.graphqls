@@ -9,9 +9,13 @@ type Query {
 }
 
 type Mutation {
+  "Only the owning COMPANY or ADMIN may create a job."
   createJob(input: CreateJobInput!): Job!
+  "Only the owning COMPANY or ADMIN may update a job."
   updateJob(id: ID!, input: UpdateJobInput!): Job!
+  "Only the owning COMPANY or ADMIN may delete a job."
   deleteJob(id: ID!): Boolean!
+  "Candidates book for themselves; COMPANY schedules its jobs; ADMIN may schedule any job."
   createSlot(input: CreateSlotInput!): InterviewSlot!
   login(username: String!, password: String!): AuthPayload!
 }
@@ -33,6 +37,7 @@ type Job {
   endsAt: String
   createdAt: String
   company: Company
+  "Private: only the owning COMPANY or ADMIN may read job applications."
   applications: [Application!]
   salaryRange: String @deprecated(reason: "Use minSalary and maxSalary instead")
 }
@@ -55,6 +60,7 @@ type Application {
 type InterviewSlot {
   id: ID!
   jobId: Int!
+  "Visible only to the assigned candidate, the owning COMPANY, or ADMIN; otherwise null."
   candidateId: Int
   startsAt: String!
   endsAt: String!
@@ -126,6 +132,7 @@ input UpdateJobInput {
 
 input CreateSlotInput {
   jobId: Int!
+  "Candidates may omit this or supply their own candidate profile ID."
   candidateId: Int
   startsAt: String!
   endsAt: String!

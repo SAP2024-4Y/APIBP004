@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.jobportal.security.ResourceAuthorization;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -23,32 +24,40 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Resume", description = "Candidates manage their own resumes. Companies may read resumes of applicants to their jobs. Global listing requires ADMIN.")
 @RestController
 @RequestMapping("/api/v1/resumes")
 @CrossOrigin(origins = "*")
 public class ResumeController {
 
     @Autowired
+    private ResourceAuthorization access;
+
+    @Autowired
     private ResumeService resumeService;
 
     @GetMapping
     public List<Resume> getAllResumes() {
+        access.requireAdmin();
         return resumeService.getAllResumes();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Resume> getResumeById(@PathVariable Integer id) {
+        access.requireResumeAccess(id, false);
         Resume resume = resumeService.getResumeById(id);
         return ResponseEntity.ok(resume);
     }
 
     @GetMapping("/candidate/{candidateId}")
     public List<Resume> getResumesByCandidateId(@PathVariable Integer candidateId) {
+        access.requireCandidateReader(candidateId);
         return resumeService.getResumesByCandidateId(candidateId);
     }
 
     @GetMapping("/candidate/{candidateId}/latest")
     public ResponseEntity<Resume> getLatestResumeByCandidateId(@PathVariable Integer candidateId) {
+        access.requireCandidateReader(candidateId);
         Resume resume = resumeService.getLatestResumeByCandidateId(candidateId);
         return ResponseEntity.ok(resume);
     }
@@ -62,6 +71,7 @@ public class ResumeController {
             @Parameter(description = "Resume file (PDF, DOC, DOCX - max 5MB)", required = true)
             @RequestParam("file") MultipartFile file) {
         
+        access.requireCandidateOwner(candidateId);
         Resume resume = resumeService.uploadResume(candidateId, file);
         
         Map<String, Object> response = new HashMap<>();
@@ -74,6 +84,7 @@ public class ResumeController {
 
     @GetMapping("/download/{id}")
     public ResponseEntity<Resource> downloadResume(@PathVariable Integer id) {
+        access.requireResumeAccess(id, false);
         try {
             Resume resume = resumeService.getResumeById(id);
             
@@ -98,6 +109,7 @@ public class ResumeController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> deleteResume(@PathVariable Integer id) {
+        access.requireResumeAccess(id, true);
         resumeService.deleteResume(id);
         
         Map<String, Object> response = new HashMap<>();

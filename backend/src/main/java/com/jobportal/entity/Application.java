@@ -24,7 +24,7 @@ public class Application {
     private ApplicationStatus status = ApplicationStatus.SUBMITTED;
 
     @Column(name = "applied_at")
-    private LocalDateTime appliedAt = LocalDateTime.now();
+    private LocalDateTime appliedAt = com.jobportal.time.UtcTime.now();
 
     public enum ApplicationStatus {
         SUBMITTED, REVIEWED, SHORTLISTED, REJECTED, HIRED

@@ -12,7 +12,7 @@ type Query {
   jobsNear(latitude: Float!, longitude: Float!, radiusKm: Float!): [Job!]!
   "Public bounding-box search. Latitude bounds must be ordered; minLon greater than maxLon means a box crossing the dateline. Bounds are inclusive; results are unpaginated."
   jobsInBox(minLat: Float!, minLon: Float!, maxLat: Float!, maxLon: Float!): [Job!]!
-  "Public overlapping slot search. Supply both ISO local date-times or neither; end must follow start. Candidate identities are redacted by ownership."
+  "Public overlapping slot search. Supply both ISO timestamps (offsets normalize to UTC; offset-free means UTC) or neither; end must follow start. Candidate identities are redacted by ownership."
   slots(startsAt: String, endsAt: String): [InterviewSlot!]!
 }
 
@@ -133,9 +133,9 @@ input CreateJobInput {
   latitude: Float
   "Longitude -180..180; supply both coordinates or neither."
   longitude: Float
-  "Optional persisted job-level local time, separate from InterviewSlot. Supply both bounds on creation; end must follow start."
+  "Optional persisted job-level UTC time, separate from InterviewSlot. Supply both bounds on creation; end must follow start."
   startsAt: String
-  "Optional persisted job-level local time, separate from InterviewSlot. Supply both bounds on creation; end must follow start."
+  "Optional persisted job-level UTC time, separate from InterviewSlot. Supply both bounds on creation; end must follow start."
   endsAt: String
   "Deprecated display text; numeric USD annual bounds override it."
   salaryRange: String
@@ -163,7 +163,7 @@ input UpdateJobInput {
   latitude: Float
   "Longitude -180..180."
   longitude: Float
-  "Persisted local job time, separate from interview slots."
+  "Persisted UTC job time, separate from interview slots."
   startsAt: String
   "Must be after startsAt. Omitted/null preserves current time."
   endsAt: String
@@ -177,8 +177,8 @@ input CreateSlotInput {
   jobId: Int!
   "Candidates may omit this or supply their own candidate profile ID."
   candidateId: Int
-  "Required ISO local date-time, for example 2027-01-10T10:00:00. Trailing Z is accepted without timezone conversion."
+  "Required ISO 8601 timestamp, for example 2027-01-10T10:00:00Z or 2027-01-10T15:30:00+05:30. Offsets normalize to UTC; offset-free means UTC."
   startsAt: String!
-  "Required ISO local date-time later than startsAt."
+  "Required ISO 8601 timestamp later than startsAt after UTC normalization."
   endsAt: String!
 }

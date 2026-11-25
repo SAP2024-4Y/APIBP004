@@ -246,3 +246,5 @@ REST and GraphQL share role and resource-ownership checks. See [the access matri
 | `/api/v1/slots` | POST | Auth | Book a slot |
 | `/api/v1/companies` | GET | No | List companies |
 | `/api/v1/applications` | POST | CANDIDATE | Submit application |
+
+Timestamp, scheduling, and application workflow rules and manual checks: [scheduling-and-applications.md](docs/scheduling-and-applications.md).

@@ -20,5 +20,5 @@ public class Resume {
     private String filePath;
 
     @Column(name = "uploaded_at")
-    private LocalDateTime uploadedAt = LocalDateTime.now();
+    private LocalDateTime uploadedAt = com.jobportal.time.UtcTime.now();
 }

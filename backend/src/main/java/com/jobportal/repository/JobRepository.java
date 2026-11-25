@@ -12,6 +12,10 @@ import java.util.List;
 
 @Repository
 public interface JobRepository extends JpaRepository<Job, Integer> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("SELECT e FROM Job e WHERE e.id = :id")
+    java.util.Optional<Job> findByIdForUpdate(@org.springframework.data.repository.query.Param("id") Integer id);
+
 
     List<Job> findByCompanyId(Integer companyId);
     List<Job> findByLocationContainingIgnoreCase(String location);

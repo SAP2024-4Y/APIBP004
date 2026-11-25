@@ -29,5 +29,5 @@ public class InterviewSlot {
     private String status = "SCHEDULED";
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = com.jobportal.time.UtcTime.now();
 }

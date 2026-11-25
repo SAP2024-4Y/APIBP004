@@ -34,7 +34,7 @@ public class Job {
     private String employmentType;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = com.jobportal.time.UtcTime.now();
 
     // Geospatial fields
     private Double latitude;

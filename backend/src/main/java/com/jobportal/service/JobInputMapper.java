@@ -46,7 +46,6 @@ public class JobInputMapper {
         return job;
     }
     private LocalDateTime localTime(String value) {
-        try { return LocalDateTime.parse(value.endsWith("Z") ? value.substring(0, value.length()-1) : value); }
-        catch (java.time.format.DateTimeParseException ex) { throw new ValidationException("Job times must be ISO local date-times; timezone offsets are not supported yet"); }
+        return com.jobportal.time.UtcTime.parse(value);
     }
 }

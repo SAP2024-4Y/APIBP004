@@ -176,3 +176,10 @@ registered per request to avoid cross-user cache pollution.
 
 3. **Ecosystem extensibility** — REST and GraphQL together serve mobile apps, web clients,
    and aggregators in the style each prefers, without duplicating business logic.
+
+
+## UTC timestamps and transactional workflow rules
+
+API timestamps normalize offset inputs to UTC and serialize with Z. Offset-free inputs are interpreted as UTC for compatibility. Existing timestamp-without-time-zone columns are retained and explicitly interpreted as UTC; no automatic historical timezone shift is possible without knowing their original timezone. Server clocks explicitly use UTC. External writers using SQL timestamp defaults must set their session timezone to UTC.
+
+Interview-slot creation locks the parent job row until commit, then checks same-job overlap with half-open intervals. This serializes simultaneous first reservations as well as subsequent ones without a PostgreSQL-only exclusion extension. The guarantee applies to service writes; direct SQL must follow the same locking protocol. Application submission uses the same parent lock for duplicate checks and OPEN-job eligibility, and status changes lock the application row. Notifications are queued only after a successful commit and remain best-effort without a durable outbox.

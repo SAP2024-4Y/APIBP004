@@ -256,7 +256,7 @@
         "nullable": true
       },
       "createdAt": {
-        "description": "Server-assigned local date-time; offset is not serialized.",
+        "description": "Server-assigned UTC timestamp serialized with Z.",
         "nullable": true,
         "format": null
       },
@@ -285,12 +285,12 @@
         "nullable": false
       },
       "startsAt": {
-        "description": "Local date-time without an offset. Job time fields are separate from interview slots.",
+        "description": "UTC timestamp serialized with Z. Job time fields are separate from interview slots.",
         "nullable": true,
         "format": null
       },
       "endsAt": {
-        "description": "Local date-time without an offset.",
+        "description": "UTC timestamp serialized with Z.",
         "nullable": true,
         "format": null
       }
@@ -329,7 +329,7 @@
         "nullable": true
       },
       "createdAt": {
-        "description": "Server-assigned local date-time; offset is not serialized.",
+        "description": "Server-assigned UTC timestamp serialized with Z.",
         "nullable": true,
         "format": null
       },
@@ -358,12 +358,12 @@
         "nullable": false
       },
       "startsAt": {
-        "description": "Local date-time without an offset. Job time fields are separate from interview slots.",
+        "description": "UTC timestamp serialized with Z. Job time fields are separate from interview slots.",
         "nullable": true,
         "format": null
       },
       "endsAt": {
-        "description": "Local date-time without an offset.",
+        "description": "UTC timestamp serialized with Z.",
         "nullable": true,
         "format": null
       }
@@ -438,7 +438,7 @@
         "nullable": false
       },
       "appliedAt": {
-        "description": "Server-assigned local date-time of application submission.",
+        "description": "Server-assigned UTC timestamp of application submission.",
         "nullable": true,
         "format": null
       }
@@ -457,7 +457,7 @@
         "nullable": false
       },
       "uploadedAt": {
-        "description": "Server-assigned local date-time of upload.",
+        "description": "Server-assigned UTC timestamp of upload.",
         "nullable": true,
         "format": null
       }
@@ -476,12 +476,12 @@
         "nullable": true
       },
       "startsAt": {
-        "description": "Local date-time without an offset. Job time fields are separate from interview slots.",
+        "description": "UTC timestamp serialized with Z. Job time fields are separate from interview slots.",
         "nullable": false,
         "format": null
       },
       "endsAt": {
-        "description": "Local date-time without an offset.",
+        "description": "UTC timestamp serialized with Z.",
         "nullable": false,
         "format": null
       },
@@ -490,7 +490,7 @@
         "nullable": false
       },
       "createdAt": {
-        "description": "Server-assigned local date-time; offset is not serialized.",
+        "description": "Server-assigned UTC timestamp serialized with Z.",
         "nullable": true,
         "format": null
       }
@@ -509,7 +509,7 @@
         "nullable": false
       },
       "createdAt": {
-        "description": "Server-assigned local date-time; offset is not serialized.",
+        "description": "Server-assigned UTC timestamp serialized with Z.",
         "nullable": true,
         "format": null
       }
@@ -747,12 +747,12 @@
       }
     },
     "starts_at": {
-      "description": "ISO local date-time. Supply both bounds; end must follow start. Offset normalization is not implemented.",
-      "example": "2027-01-10T10:00:00"
+      "description": "ISO 8601 timestamp with Z or an offset, normalized to UTC; offset-free input means UTC. Supply both bounds; end must follow start. Query + offsets must be URL-encoded as %2B.",
+      "example": "2027-01-10T10:00:00Z"
     },
     "ends_at": {
-      "description": "ISO local date-time. Supply both bounds; end must follow start. Offset normalization is not implemented.",
-      "example": "2027-01-10T10:00:00"
+      "description": "ISO 8601 timestamp with Z or an offset, normalized to UTC; offset-free input means UTC. Supply both bounds; end must follow start. Query + offsets must be URL-encoded as %2B.",
+      "example": "2027-01-10T10:00:00Z"
     }
   },
   "operations": {
@@ -988,7 +988,7 @@
             "salaryRange": "90000 - 130000",
             "location": "San Francisco",
             "employmentType": "Full-time",
-            "createdAt": "2026-11-25T10:00:00",
+            "createdAt": "2026-11-25T10:00:00Z",
             "latitude": 37.7749,
             "longitude": -122.4194,
             "minSalary": 90000,
@@ -1021,7 +1021,7 @@
               "salaryRange": "90000 - 130000",
               "location": "San Francisco",
               "employmentType": "Full-time",
-              "createdAt": "2026-11-25T10:00:00",
+              "createdAt": "2026-11-25T10:00:00Z",
               "latitude": 37.7749,
               "longitude": -122.4194,
               "minSalary": 90000,
@@ -1083,7 +1083,7 @@
         "salaryRange": "90000 - 130000",
         "location": "San Francisco",
         "employmentType": "Full-time",
-        "createdAt": "2026-11-25T10:00:00",
+        "createdAt": "2026-11-25T10:00:00Z",
         "latitude": 37.7749,
         "longitude": -122.4194,
         "minSalary": 90000,
@@ -1137,7 +1137,7 @@
           "salaryRange": "90000 - 130000",
           "location": "San Francisco",
           "employmentType": "Full-time",
-          "createdAt": "2026-11-25T10:00:00",
+          "createdAt": "2026-11-25T10:00:00Z",
           "latitude": 37.7749,
           "longitude": -122.4194,
           "minSalary": 90000,
@@ -1193,7 +1193,7 @@
           "salaryRange": "90000 - 130000",
           "location": "San Francisco",
           "employmentType": "Full-time",
-          "createdAt": "2026-11-25T10:00:00",
+          "createdAt": "2026-11-25T10:00:00Z",
           "latitude": 37.7749,
           "longitude": -122.4194,
           "minSalary": 90000,
@@ -1250,7 +1250,7 @@
           "salaryRange": "90000 - 130000",
           "location": "San Francisco",
           "employmentType": "Full-time",
-          "createdAt": "2026-11-25T10:00:00",
+          "createdAt": "2026-11-25T10:00:00Z",
           "latitude": 37.7749,
           "longitude": -122.4194,
           "minSalary": 90000,
@@ -1266,7 +1266,7 @@
     },
     "POST /api/v1/jobs": {
       "summary": "Publish a job posting",
-      "description": "Use case: Publish a job posting.\n\nConsumers: recruiter dashboard.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Requires an existing owned company profile, or ADMIN. Persists category, status, numeric salary bounds, coordinates, and local job time bounds as well as basic fields. Title (3–255) and description (at least 20) are required. Status defaults OPEN. Supply both coordinates or neither and both local time bounds or neither, with end after start. Numeric salary bounds are whole USD per year and generate the deprecated salaryRange display; legacy-only text remains display-only and is not searched as numeric salary. Creates a job, not an interview slot.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "description": "Use case: Publish a job posting.\n\nConsumers: recruiter dashboard.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Requires an existing owned company profile, or ADMIN. Persists category, status, numeric salary bounds, coordinates, and UTC job time bounds as well as basic fields. Title (3–255) and description (at least 20) are required. Status defaults OPEN. Supply both coordinates or neither and both time bounds or neither, with end after start. Numeric salary bounds are whole USD per year and generate the deprecated salaryRange display; legacy-only text remains display-only and is not searched as numeric salary. Creates a job, not an interview slot.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
       "public": false,
       "status": "201",
       "successDescription": "Publish a job posting completed",
@@ -1328,15 +1328,15 @@
         "salaryRange": "90000 - 130000",
         "location": "San Francisco",
         "employmentType": "Full-time",
-        "createdAt": "2026-11-25T10:00:00",
+        "createdAt": "2026-11-25T10:00:00Z",
         "latitude": 37.7749,
         "longitude": -122.4194,
         "minSalary": 90000,
         "maxSalary": 130000,
         "category": "Technology",
         "status": "OPEN",
-        "startsAt": "2027-02-01T09:00:00",
-        "endsAt": "2027-02-01T10:00:00"
+        "startsAt": "2027-02-01T09:00:00Z",
+        "endsAt": "2027-02-01T10:00:00Z"
       },
       "request": {
         "companyId": 1,
@@ -1352,13 +1352,13 @@
         "maxSalary": 130000,
         "latitude": 37.7749,
         "longitude": -122.4194,
-        "startsAt": "2027-02-01T09:00:00",
-        "endsAt": "2027-02-01T10:00:00"
+        "startsAt": "2027-02-01T09:00:00Z",
+        "endsAt": "2027-02-01T10:00:00Z"
       }
     },
     "PUT /api/v1/jobs/{id}": {
       "summary": "Update a job posting",
-      "description": "Use case: Update a job posting.\n\nConsumers: recruiter dashboard.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Updates only non-null supplied fields; omitted and explicit null fields preserve existing values, matching GraphQL updateJob. Null cannot clear a field. companyId cannot change; ID/createdAt are server-managed. Coordinates and local job time fields are supported; the final coordinate/time pairs must be valid and end must follow start. Numeric salaries are nonnegative whole USD per year, min <= max, and override legacy salaryRange text. Job time updates do not modify InterviewSlot records.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "description": "Use case: Update a job posting.\n\nConsumers: recruiter dashboard.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Updates only non-null supplied fields; omitted and explicit null fields preserve existing values, matching GraphQL updateJob. Null cannot clear a field. companyId cannot change; ID/createdAt are server-managed. Coordinates and UTC job time fields are supported; the final coordinate/time pairs must be valid and end must follow start. Numeric salaries are nonnegative whole USD per year, min <= max, and override legacy salaryRange text. Job time updates do not modify InterviewSlot records.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
       "public": false,
       "status": "200",
       "successDescription": "Update a job posting completed",
@@ -1420,15 +1420,15 @@
         "salaryRange": "90000 - 130000",
         "location": "San Francisco",
         "employmentType": "Full-time",
-        "createdAt": "2026-11-25T10:00:00",
+        "createdAt": "2026-11-25T10:00:00Z",
         "latitude": 37.7749,
         "longitude": -122.4194,
         "minSalary": 90000,
         "maxSalary": 130000,
         "category": "Technology",
         "status": "OPEN",
-        "startsAt": "2027-02-01T09:00:00",
-        "endsAt": "2027-02-01T10:00:00"
+        "startsAt": "2027-02-01T09:00:00Z",
+        "endsAt": "2027-02-01T10:00:00Z"
       },
       "request": {
         "companyId": 1,
@@ -1444,8 +1444,8 @@
         "maxSalary": 130000,
         "latitude": 37.7749,
         "longitude": -122.4194,
-        "startsAt": "2027-02-01T09:00:00",
-        "endsAt": "2027-02-01T10:00:00"
+        "startsAt": "2027-02-01T09:00:00Z",
+        "endsAt": "2027-02-01T10:00:00Z"
       }
     },
     "DELETE /api/v1/jobs/{id}": {
@@ -2277,7 +2277,7 @@
           "id": 3,
           "email": "alex@example.com",
           "role": "CANDIDATE",
-          "createdAt": "2026-11-25T10:00:00"
+          "createdAt": "2026-11-25T10:00:00Z"
         }
       ],
       "empty": []
@@ -2334,7 +2334,7 @@
         "id": 3,
         "email": "alex@example.com",
         "role": "CANDIDATE",
-        "createdAt": "2026-11-25T10:00:00"
+        "createdAt": "2026-11-25T10:00:00Z"
       }
     },
     "POST /api/v1/users": {
@@ -2396,7 +2396,7 @@
         "id": 3,
         "email": "alex@example.com",
         "role": "CANDIDATE",
-        "createdAt": "2026-11-25T10:00:00"
+        "createdAt": "2026-11-25T10:00:00Z"
       },
       "request": {
         "email": "alex@example.com",
@@ -2463,7 +2463,7 @@
         "id": 3,
         "email": "alex@example.com",
         "role": "CANDIDATE",
-        "createdAt": "2026-11-25T10:00:00"
+        "createdAt": "2026-11-25T10:00:00Z"
       },
       "request": {
         "email": "alex@example.com",
@@ -2561,7 +2561,7 @@
           "candidateId": 1,
           "jobId": 1,
           "status": "SUBMITTED",
-          "appliedAt": "2026-11-25T10:00:00"
+          "appliedAt": "2026-11-25T10:00:00Z"
         }
       ],
       "empty": []
@@ -2619,7 +2619,7 @@
         "candidateId": 1,
         "jobId": 1,
         "status": "SUBMITTED",
-        "appliedAt": "2026-11-25T10:00:00"
+        "appliedAt": "2026-11-25T10:00:00Z"
       }
     },
     "GET /api/v1/applications/candidate/{candidateId}": {
@@ -2679,7 +2679,7 @@
           "candidateId": 1,
           "jobId": 1,
           "status": "SUBMITTED",
-          "appliedAt": "2026-11-25T10:00:00"
+          "appliedAt": "2026-11-25T10:00:00Z"
         }
       ],
       "empty": []
@@ -2741,14 +2741,14 @@
           "candidateId": 1,
           "jobId": 1,
           "status": "SUBMITTED",
-          "appliedAt": "2026-11-25T10:00:00"
+          "appliedAt": "2026-11-25T10:00:00Z"
         }
       ],
       "empty": []
     },
     "POST /api/v1/applications": {
       "summary": "Apply for a job",
-      "description": "Use case: Apply for a job.\n\nConsumers: candidate application form.\n\nRoles and ownership: CANDIDATE only. candidateId is derived from the token and cannot identify another candidate.\n\nWorkflow and side effects: Create a candidate profile and discover an existing job first. Creates one application per candidate/job pair. status and appliedAt are assigned by the server; submitted IDs are rejected. Notification email is attempted asynchronously when configured.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "description": "Use case: Apply for a job.\n\nConsumers: candidate application form.\n\nRoles and ownership: CANDIDATE only. candidateId is derived from the token and cannot identify another candidate.\n\nWorkflow and side effects: Create a candidate profile and discover an existing job first. Creates one application per candidate/job pair. status and appliedAt are assigned by the server; submitted IDs are rejected. Notification email is attempted asynchronously when configured.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota. Only OPEN jobs accept new applications. Job times do not determine eligibility. ID, SUBMITTED status, and appliedAt are assigned by the service. A parent-job lock serializes duplicate submissions; duplicates return 409 DUPLICATE_RESOURCE. Closed/draft jobs return 409 APPLICATION_CONFLICT. Email notifications are best-effort and begin only after commit.",
       "public": false,
       "status": "201",
       "successDescription": "Apply for a job completed",
@@ -2780,9 +2780,10 @@
           }
         },
         "409": {
-          "trigger": "A duplicate account or candidate-job application already exists.",
+          "trigger": "Duplicate candidate-job application or job is not OPEN.",
           "examples": {
-            "DUPLICATE_RESOURCE": "A matching record already exists"
+            "DUPLICATE_RESOURCE": "A matching record already exists",
+            "APPLICATION_CONFLICT": "Applications require an OPEN job"
           }
         },
         "415": {
@@ -2812,7 +2813,7 @@
         "candidateId": 1,
         "jobId": 1,
         "status": "SUBMITTED",
-        "appliedAt": "2026-11-25T10:00:00"
+        "appliedAt": "2026-11-25T10:00:00Z"
       },
       "request": {
         "jobId": 1
@@ -2820,7 +2821,7 @@
     },
     "PUT /api/v1/applications/{id}/status": {
       "summary": "Review an application",
-      "description": "Use case: Review an application.\n\nConsumers: recruiter review screens.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Supply a JSON string enum, not an object. Supported: SUBMITTED, REVIEWED, SHORTLISTED, REJECTED, HIRED. Updates status and attempts a notification email on change. Transition ordering is not enforced yet.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "description": "Use case: Review an application.\n\nConsumers: recruiter review screens.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Supply a JSON string enum, not an object. Supported: SUBMITTED, REVIEWED, SHORTLISTED, REJECTED, HIRED. Updates status and attempts a notification email on change. Transition ordering is not enforced yet.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota. Allowed transitions: SUBMITTED -> REVIEWED or REJECTED; REVIEWED -> SHORTLISTED or REJECTED; SHORTLISTED -> HIRED or REJECTED. HIRED and REJECTED are terminal. Repeating the current status is a successful no-op with no notification. Other transitions return 409 APPLICATION_CONFLICT. Status updates lock the application row. The request remains a raw JSON string, for example \"REVIEWED\", not an object. Notifications start only after commit and are best-effort, without durable retry.",
       "public": false,
       "status": "200",
       "successDescription": "Review an application completed",
@@ -2868,6 +2869,12 @@
           "examples": {
             "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
           }
+        },
+        "409": {
+          "trigger": "The requested application transition is not allowed.",
+          "examples": {
+            "APPLICATION_CONFLICT": "Cannot change application status from SUBMITTED to HIRED"
+          }
         }
       },
       "schema": {
@@ -2878,13 +2885,13 @@
         "candidateId": 1,
         "jobId": 1,
         "status": "SHORTLISTED",
-        "appliedAt": "2026-11-25T10:00:00"
+        "appliedAt": "2026-11-25T10:00:00Z"
       },
       "request": "SHORTLISTED"
     },
     "DELETE /api/v1/applications/{id}": {
       "summary": "Withdraw an application",
-      "description": "Use case: Withdraw an application.\n\nConsumers: candidate application tracking.\n\nRoles and ownership: Owning CANDIDATE or ADMIN.\n\nWorkflow and side effects: Deletes the application record; this endpoint does not set a WITHDRAWN status.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "description": "Use case: Withdraw an application.\n\nConsumers: candidate application tracking.\n\nRoles and ownership: Owning CANDIDATE or ADMIN.\n\nWorkflow and side effects: Deletes the application record; this endpoint does not set a WITHDRAWN status.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota. Withdrawal physically deletes the record at any status. There is no withdrawal history or email; the candidate can reapply if the job is OPEN.",
       "public": false,
       "status": "204",
       "successDescription": "Completed with no response body",
@@ -2972,7 +2979,7 @@
           "id": 1,
           "candidateId": 1,
           "filePath": "/static/resumes/resume_1_example.pdf",
-          "uploadedAt": "2026-11-25T10:00:00"
+          "uploadedAt": "2026-11-25T10:00:00Z"
         }
       ],
       "empty": []
@@ -3029,7 +3036,7 @@
         "id": 1,
         "candidateId": 1,
         "filePath": "/static/resumes/resume_1_example.pdf",
-        "uploadedAt": "2026-11-25T10:00:00"
+        "uploadedAt": "2026-11-25T10:00:00Z"
       }
     },
     "GET /api/v1/resumes/candidate/{candidateId}": {
@@ -3088,7 +3095,7 @@
           "id": 1,
           "candidateId": 1,
           "filePath": "/static/resumes/resume_1_example.pdf",
-          "uploadedAt": "2026-11-25T10:00:00"
+          "uploadedAt": "2026-11-25T10:00:00Z"
         }
       ],
       "empty": []
@@ -3145,7 +3152,7 @@
         "id": 1,
         "candidateId": 1,
         "filePath": "/static/resumes/resume_1_example.pdf",
-        "uploadedAt": "2026-11-25T10:00:00"
+        "uploadedAt": "2026-11-25T10:00:00Z"
       }
     },
     "POST /api/v1/resumes/upload": {
@@ -3215,7 +3222,7 @@
           "id": 1,
           "candidateId": 1,
           "filePath": "/static/resumes/resume_1_example.pdf",
-          "uploadedAt": "2026-11-25T10:00:00"
+          "uploadedAt": "2026-11-25T10:00:00Z"
         },
         "success": true
       }
@@ -3327,7 +3334,7 @@
     },
     "GET /api/v1/slots": {
       "summary": "Browse interview slots",
-      "description": "Use case: Browse interview slots.\n\nConsumers: calendar and interview booking screens.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Supply both starts_at and ends_at or neither. Uses ISO local date-times; timezone conversion is not implemented. Returns overlapping slots, unpaginated. candidateId is null unless caller is that candidate, the job-owning COMPANY, or ADMIN.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "description": "Use case: Browse interview slots.\n\nConsumers: calendar and interview booking screens.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Supply both starts_at and ends_at or neither. Offsets are normalized to UTC; offset-free input means UTC. Intervals are half-open [start, end); adjacent slots do not overlap. Returns overlapping slots, unpaginated. candidateId is null unless caller is that candidate, the job-owning COMPANY, or ADMIN.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
       "public": true,
       "status": "200",
       "successDescription": "Browse interview slots completed",
@@ -3363,17 +3370,17 @@
           "id": 1,
           "jobId": 1,
           "candidateId": null,
-          "startsAt": "2027-01-10T10:00:00",
-          "endsAt": "2027-01-10T10:30:00",
+          "startsAt": "2027-01-10T10:00:00Z",
+          "endsAt": "2027-01-10T10:30:00Z",
           "status": "SCHEDULED",
-          "createdAt": "2026-11-25T10:00:00"
+          "createdAt": "2026-11-25T10:00:00Z"
         }
       ],
       "empty": []
     },
     "POST /api/v1/slots": {
       "summary": "Schedule an interview",
-      "description": "Use case: Schedule an interview.\n\nConsumers: calendar and interview booking screens.\n\nRoles and ownership: CANDIDATE books for themselves; COMPANY schedules only its jobs; ADMIN may schedule any job.\n\nWorkflow and side effects: Job and any candidate must exist. Candidate callers need a profile; candidateId defaults to their profile. Company/admin may omit candidateId for an unassigned slot. endsAt must follow startsAt. Same-job overlapping slots return 409. This does not require an existing job application.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "description": "Use case: Schedule an interview.\n\nConsumers: calendar and interview booking screens.\n\nRoles and ownership: CANDIDATE books for themselves; COMPANY schedules only its jobs; ADMIN may schedule any job.\n\nWorkflow and side effects: Job and any candidate must exist. Candidate callers need a profile; candidateId defaults to their profile. Company/admin may omit candidateId for an unassigned slot. endsAt must follow startsAt. Same-job overlapping slots return 409. This does not require an existing job application.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota. Slots are SCHEDULED reservations: candidateId null means unassigned, otherwise assigned. Both reserve the interval. Same-job creation is serialized using a database parent-row lock, including simultaneous first bookings; different jobs may overlap. Adjacent intervals are allowed. Job time fields remain independent. There is no assignment/update/cancellation endpoint; delete and recreate a slot to change it.",
       "public": false,
       "status": "201",
       "successDescription": "Schedule an interview completed",
@@ -3436,20 +3443,20 @@
         "id": 1,
         "jobId": 1,
         "candidateId": 1,
-        "startsAt": "2027-01-10T10:00:00",
-        "endsAt": "2027-01-10T10:30:00",
+        "startsAt": "2027-01-10T10:00:00Z",
+        "endsAt": "2027-01-10T10:30:00Z",
         "status": "SCHEDULED",
-        "createdAt": "2026-11-25T10:00:00"
+        "createdAt": "2026-11-25T10:00:00Z"
       },
       "request": {
         "jobId": 1,
-        "startsAt": "2027-01-10T10:00:00",
-        "endsAt": "2027-01-10T10:30:00"
+        "startsAt": "2027-01-10T10:00:00Z",
+        "endsAt": "2027-01-10T10:30:00Z"
       }
     },
     "DELETE /api/v1/slots/{id}": {
       "summary": "Cancel an interview slot",
-      "description": "Use case: Cancel an interview slot.\n\nConsumers: calendar screens.\n\nRoles and ownership: Assigned CANDIDATE, COMPANY owning the job, or ADMIN.\n\nWorkflow and side effects: Deletes the existing slot record. Does not preserve a cancellation event.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "description": "Use case: Cancel an interview slot.\n\nConsumers: calendar screens.\n\nRoles and ownership: Assigned CANDIDATE, COMPANY owning the job, or ADMIN.\n\nWorkflow and side effects: Deletes the existing slot record. Does not preserve a cancellation event.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota. This physically deletes the reservation and frees its interval; there is no cancellation history or notification.",
       "public": false,
       "status": "204",
       "successDescription": "Completed with no response body",

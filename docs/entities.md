@@ -94,7 +94,7 @@ Job times are **not InterviewSlot records**. Creating a slot does not populate t
 | status | varchar(255) | Yes | Default SUBMITTED; DB check SUBMITTED, REVIEWED, SHORTLISTED, REJECTED, HIRED |
 | applied_at | timestamp | Yes | SQL default CURRENT_TIMESTAMP; server assigns on REST creation |
 
-The candidate_id/job_id pair is unique. REST returns all fields and assigns candidate/status/time independently of untrusted input. GraphQL exposes id, status, and appliedAt through authorized Job.applications; no application mutations exist. Status transitions are not ordered. The schema does not require an OPEN job for an application.
+The candidate_id/job_id pair is unique. REST returns all fields and assigns candidate/status/time independently of untrusted input. GraphQL exposes id, status, and appliedAt through authorized Job.applications; no application mutations exist. The service requires an OPEN job on submission and enforces SUBMITTED → REVIEWED → SHORTLISTED → HIRED, with REJECTED allowed from each nonterminal state. These cross-row and transition rules are enforced by the service, not SQL checks.
 
 ## Resume — resumes
 
@@ -119,11 +119,11 @@ Resume metadata/file operations are REST-only. Download through the authenticate
 | status | varchar(30) | No | Default SCHEDULED; no DB enum check |
 | created_at | timestamp | Yes | SQL default CURRENT_TIMESTAMP; Java initializes LocalDateTime |
 
-REST/GraphQL redact candidateId unless the caller is the assigned candidate, job owner, or ADMIN. The application creates SCHEDULED slots and deletes on cancellation; no cancellation history exists. Service code checks same-job overlap, but no DB exclusion constraint yet prevents concurrent overlapping inserts. A candidate need not have an application. Those scheduling/lifecycle rules remain separate work.
+REST/GraphQL redact candidateId unless the caller is the assigned candidate, job owner, or ADMIN. The application creates SCHEDULED slots and deletes on cancellation; no cancellation history exists. Service creation locks the parent job row until commit to serialize same-job overlap checks, including when no slots exist. Direct SQL bypasses this service rule; there is no SQL exclusion constraint. A candidate need not have an application. Assigned and unassigned reservations both block the interval; adjacent intervals are allowed. See [scheduling and lifecycle](scheduling-and-applications.md).
 
 ## Defaults, enforcement, and internal tables
 
-Domain timestamps are PostgreSQL timestamp without time zone / Java LocalDateTime; UTC normalization remains separate work. SQL defaults apply when columns are omitted, not explicit nulls. API validation is stricter than some nullable columns; direct SQL can create values that fail non-null GraphQL fields, such as null company approval or application status.
+Domain timestamps retain PostgreSQL timestamp without time zone / Java LocalDateTime, with a UTC interpretation. Input offsets normalize to UTC, output includes Z, and server clocks explicitly use UTC. Existing values are interpreted as UTC without shifting stored data. SQL timestamp defaults depend on the database session timezone; external writers must set their session to UTC. SQL defaults apply when columns are omitted, not explicit nulls. API validation is stricter than some nullable columns; direct SQL can create values that fail non-null GraphQL fields, such as null company approval or application status.
 
 The migration enforces displayed FKs, email/profile/application uniqueness, user/job/application state values, coordinate/salary bounds, and ordered slot intervals. It does not enforce ownership, cross-table role matching, transitions, or overlap across rows.
 

@@ -17,7 +17,7 @@ Creation accepts companyId, title, description, skillsRequired, salaryRange, loc
 
 Updates support the same editable fields except company ownership cannot change. REST permits the unchanged companyId as a compatibility input; GraphQL UpdateJobInput omits it. Final values are validated together, so updating one salary/time/coordinate bound must remain valid with the preserved other bound.
 
-Title requires 3–255 nonblank characters, description at least 20 nonblank characters. Status is OPEN, CLOSED, or DRAFT. Both coordinates must be present together on creation and be finite/in range. Supply both job times or neither; end must follow start. Time fields are ISO local date-times, and an optional trailing Z is accepted without offset conversion. Other timezone offsets are rejected pending the UTC work. Job times persist independently of InterviewSlot records.
+Title requires 3–255 nonblank characters, description at least 20 nonblank characters. Status is OPEN, CLOSED, or DRAFT. Both coordinates must be present together on creation and be finite/in range. Supply both job times or neither; end must follow start. Time inputs accept ISO 8601 offsets and normalize to UTC; offset-free inputs mean UTC for compatibility. Responses use Z. See [timestamps and lifecycle](scheduling-and-applications.md). Job times persist independently of InterviewSlot records.
 
 Example REST creation, using the owning COMPANY token and actual company ID:
 

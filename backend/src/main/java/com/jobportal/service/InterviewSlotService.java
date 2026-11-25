@@ -18,6 +18,9 @@ public class InterviewSlotService {
     @Autowired
     private InterviewSlotRepository slotRepository;
 
+    @Autowired private com.jobportal.repository.JobRepository jobs;
+    @Autowired private com.jobportal.repository.CandidateRepository candidates;
+
     public List<InterviewSlot> findByTimeWindow(LocalDateTime startsAt, LocalDateTime endsAt) {
         if ((startsAt == null) != (endsAt == null)) throw new ValidationException("Supply both starts_at and ends_at or neither");
         if (startsAt != null && endsAt != null) {
@@ -38,6 +41,10 @@ public class InterviewSlotService {
             throw new ValidationException("ends_at must be after starts_at");
         }
 
+        if (jobId == null || jobId <= 0) throw new ValidationException("Valid job ID is required");
+        // Lock the parent even when there are no slots yet. Held until the insert commits.
+        jobs.findByIdForUpdate(jobId).orElseThrow(() -> new ResourceNotFoundException("Job not found"));
+        if (candidateId != null && !candidates.existsById(candidateId)) throw new ResourceNotFoundException("Candidate not found");
         List<InterviewSlot> conflicts = slotRepository.findConflictingSlots(jobId, startsAt, endsAt);
         if (!conflicts.isEmpty()) {
             throw new SchedulingConflictException(
@@ -52,7 +59,7 @@ public class InterviewSlotService {
         slot.setStartsAt(startsAt);
         slot.setEndsAt(endsAt);
         slot.setStatus("SCHEDULED");
-        slot.setCreatedAt(LocalDateTime.now());
+        slot.setCreatedAt(com.jobportal.time.UtcTime.now());
 
         return slotRepository.save(slot);
     }

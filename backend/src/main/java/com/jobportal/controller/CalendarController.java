@@ -32,11 +32,11 @@ public class CalendarController {
 
     @GetMapping
     @Operation(summary = "Get interview slots by time window",
-               description = "Returns slots overlapping the given ISO local date-time window. Parameters: starts_at, ends_at. Candidate identities are visible only to the candidate, job owner, or ADMIN.")
+               description = "Returns slots overlapping the given ISO 8601 window normalized to UTC. Parameters: starts_at, ends_at. Candidate identities are visible only to the candidate, job owner, or ADMIN.")
     public ResponseEntity<List<InterviewSlot>> getSlots(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime starts_at,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime ends_at) {
-        return ResponseEntity.ok(slotService.findByTimeWindow(starts_at, ends_at).stream()
+            @RequestParam(required = false) String starts_at,
+            @RequestParam(required = false) String ends_at) {
+        return ResponseEntity.ok(slotService.findByTimeWindow(com.jobportal.time.UtcTime.parse(starts_at), com.jobportal.time.UtcTime.parse(ends_at)).stream()
                 .map(access::publicSlot).toList());
     }
 
@@ -52,8 +52,8 @@ public class CalendarController {
         String startsAtStr = body.getStartsAt();
         String endsAtStr = body.getEndsAt();
 
-        LocalDateTime startsAt = startsAtStr != null ? LocalDateTime.parse(startsAtStr.replace("Z", "")) : null;
-        LocalDateTime endsAt = endsAtStr != null ? LocalDateTime.parse(endsAtStr.replace("Z", "")) : null;
+        LocalDateTime startsAt = com.jobportal.time.UtcTime.parse(startsAtStr);
+        LocalDateTime endsAt = com.jobportal.time.UtcTime.parse(endsAtStr);
 
         InterviewSlot slot = slotService.createSlot(jobId, candidateId, startsAt, endsAt);
         return ResponseEntity.status(HttpStatus.CREATED).body(slot);

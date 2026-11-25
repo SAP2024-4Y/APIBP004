@@ -76,19 +76,20 @@ class JobControllerIntegrationTest {
     }
 
     @Test
-    void getAllJobs_WithTitleParam_ShouldReturnJobList() throws Exception {
+    void getAllJobs_WithTitleParam_ShouldReturnPagedResponse() throws Exception {
         List<Job> jobs = Arrays.asList(testJob);
-        when(jobService.searchJobsByTitle("Engineer")).thenReturn(jobs);
+        Map<String, Object> page = new LinkedHashMap<>();
+        page.put("data", jobs); page.put("has_more", false); page.put("next_cursor", null); page.put("limit", 20);
+        when(jobService.findWithCursorPagination(isNull(), isNull(), isNull(), isNull(), isNull(), eq(20),
+                isNull(), isNull(), eq("Engineer"), isNull(), isNull())).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/jobs")
                 .param("title", "Engineer")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].title").value("Software Engineer"));
-
-        verify(jobService, times(1)).searchJobsByTitle("Engineer");
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0].id").value(1))
+                .andExpect(jsonPath("$.data[0].title").value("Software Engineer"));
     }
 
     @Test
@@ -100,7 +101,7 @@ class JobControllerIntegrationTest {
         cursorResult.put("limit", 20);
 
         when(jobService.findWithCursorPagination(eq("OPEN"), isNull(), isNull(), isNull(),
-                isNull(), eq(20), any(), any())).thenReturn(cursorResult);
+                isNull(), eq(20), any(), any(), isNull(), isNull(), isNull())).thenReturn(cursorResult);
 
         mockMvc.perform(get("/api/v1/jobs")
                 .param("status", "OPEN")
@@ -226,7 +227,7 @@ class JobControllerIntegrationTest {
         List<Job> jobs = Arrays.asList(testJob);
         when(jobService.searchJobsByLocation("San Francisco")).thenReturn(jobs);
 
-        mockMvc.perform(get("/api/v1/jobs")
+        mockMvc.perform(get("/api/v1/jobs/search/location")
                 .param("location", "San Francisco")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -241,7 +242,7 @@ class JobControllerIntegrationTest {
         List<Job> jobs = Arrays.asList(testJob);
         when(jobService.searchJobsByTitle("Engineer")).thenReturn(jobs);
 
-        mockMvc.perform(get("/api/v1/jobs")
+        mockMvc.perform(get("/api/v1/jobs/search/title")
                 .param("title", "Engineer")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

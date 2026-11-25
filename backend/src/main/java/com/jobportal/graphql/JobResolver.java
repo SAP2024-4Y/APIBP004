@@ -33,4 +33,10 @@ public class JobResolver implements GraphQLResolver<Job> {
         access.requireJobOwner(access.actor(env), job.getId());
         return applicationRepository.findByJobId(job.getId());
     }
+    public String startsAt(Job job) { return time(job.getStartsAt()); }
+    public String endsAt(Job job) { return time(job.getEndsAt()); }
+    public String createdAt(Job job) { return time(job.getCreatedAt()); }
+    private String time(java.time.LocalDateTime value) {
+        return value == null ? null : value.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    }
 }

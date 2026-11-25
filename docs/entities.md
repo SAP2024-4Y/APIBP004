@@ -69,20 +69,20 @@ GraphQL exposes id, companyName, industry, address, approved, and nested jobs. G
 | title | varchar(255) | No | API length 3–255 |
 | description | text | Yes | API requires nonblank text of at least 20 characters |
 | skills_required | text | Yes | Free-text skills |
-| salary_range | varchar(255) | Yes | Legacy display text; not computed |
+| salary_range | varchar(255) | Yes | Deprecated display; application generates it from numeric bounds when present |
 | location | varchar(255) | Yes | Human-readable place |
 | employment_type | varchar(255) | Yes | API validates documented spellings; no DB enum check |
 | created_at | timestamp | Yes | SQL default CURRENT_TIMESTAMP; Java initializes LocalDateTime |
 | latitude | double precision | Yes | Both coordinates null or both present; -90..90 |
 | longitude | double precision | Yes | -180..180 |
-| min_salary | integer | Yes | Nonnegative |
-| max_salary | integer | Yes | Nonnegative; at least min_salary when both present |
+| min_salary | integer | Yes | Whole USD per year, nonnegative |
+| max_salary | integer | Yes | Whole USD per year, nonnegative; at least min_salary when both present |
 | category | varchar(255) | Yes | Free text |
 | status | varchar(20) | No | Default OPEN; DB check OPEN, CLOSED, DRAFT |
 | starts_at | timestamp | Yes | Optional job-level time |
 | ends_at | timestamp | Yes | Optional job-level time |
 
-Job times are **not InterviewSlot records**. Creating a slot does not populate these columns; seeded jobs leave them null. GraphQL resolves company and private applications separately. Maps expose a property subset. REST creation accepts fewer fields than the entity; see [API contracts](api-contracts.md). Salary currency/period and consistency with salary_range are not enforced.
+Job times are **not InterviewSlot records**. Creating a slot does not populate these columns; seeded jobs leave them null. GraphQL resolves company and private applications separately. Maps expose a property subset. REST and GraphQL persist the documented editable fields; ID/createdAt are server-managed. See [job discovery](job-discovery.md) for USD annual salary units, generated legacy display, and update semantics. V2 normalizes existing priced display strings; direct SQL can still bypass application-level display generation.
 
 ## Application — applications
 

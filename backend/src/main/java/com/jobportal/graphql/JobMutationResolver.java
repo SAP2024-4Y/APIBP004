@@ -27,6 +27,9 @@ public class JobMutationResolver implements GraphQLMutationResolver {
     private JobService jobService;
 
     @Autowired
+    private com.jobportal.service.JobInputMapper jobInputs;
+
+    @Autowired
     private InterviewSlotService slotService;
 
     @Autowired
@@ -34,35 +37,13 @@ public class JobMutationResolver implements GraphQLMutationResolver {
 
     public Job createJob(Map<String, Object> input, DataFetchingEnvironment env) {
         access.requireCompanyOwner(access.actor(env), (Integer) input.get("companyId"));
-        Job job = new Job();
-        job.setCompanyId((Integer) input.get("companyId"));
-        job.setTitle((String) input.get("title"));
-        job.setDescription((String) input.get("description"));
-        job.setCategory((String) input.get("category"));
-        job.setStatus(input.get("status") != null ? (String) input.get("status") : "OPEN");
-        job.setLocation((String) input.get("location"));
-        job.setMinSalary((Integer) input.get("minSalary"));
-        job.setMaxSalary((Integer) input.get("maxSalary"));
-        job.setEmploymentType((String) input.get("employmentType"));
-        job.setSkillsRequired((String) input.get("skillsRequired"));
-        if (input.get("latitude") != null) job.setLatitude(((Number) input.get("latitude")).doubleValue());
-        if (input.get("longitude") != null) job.setLongitude(((Number) input.get("longitude")).doubleValue());
+        Job job = jobInputs.create(input);
         return jobService.saveJob(job);
     }
 
     public Job updateJob(String id, Map<String, Object> input, DataFetchingEnvironment env) {
         access.requireJobOwner(access.actor(env), Integer.parseInt(id));
-        Job job = new Job();
-        org.springframework.beans.BeanUtils.copyProperties(jobService.getJobById(Integer.parseInt(id)), job);
-        if (input.get("title") != null) job.setTitle((String) input.get("title"));
-        if (input.get("description") != null) job.setDescription((String) input.get("description"));
-        if (input.get("category") != null) job.setCategory((String) input.get("category"));
-        if (input.get("status") != null) job.setStatus((String) input.get("status"));
-        if (input.get("location") != null) job.setLocation((String) input.get("location"));
-        if (input.get("minSalary") != null) job.setMinSalary((Integer) input.get("minSalary"));
-        if (input.get("maxSalary") != null) job.setMaxSalary((Integer) input.get("maxSalary"));
-        if (input.get("employmentType") != null) job.setEmploymentType((String) input.get("employmentType"));
-        if (input.get("skillsRequired") != null) job.setSkillsRequired((String) input.get("skillsRequired"));
+        Job job = jobInputs.update(jobService.getJobById(Integer.parseInt(id)), input);
         return jobService.saveJob(job);
     }
 

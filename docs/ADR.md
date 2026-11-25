@@ -76,8 +76,7 @@ service-layer caching.
 | **Map** | `GET /api/v1/jobs/map?latitude=&longitude=&radius_km=` or `?min_lat=&min_lon=&max_lat=&max_lon=` | `jobsNear(latitude, longitude, radiusKm)` / `jobsInBox(...)` | `Job` (coordinates) |
 | **Calendar** | `GET /api/v1/slots?starts_at=&ends_at=` / `POST /api/v1/slots` (→ 409 on conflict) | `slots(startsAt, endsAt)` / `createSlot(input)` | `InterviewSlot` |
 
-The List API uses cursor-based (keyset) pagination to prevent dataset drift; the opaque
-`after` cursor is a base64-encoded job ID. The Map API applies Haversine filtering in-memory
+The List API uses sort-aware keyset pagination with ID tie-breakers and nulls last. Cursors carry the sort value, ID, and query context. Traversal is deterministic for unchanged data; it is not a snapshot across concurrent edits. The Map API applies Haversine filtering in-memory
 after a SQL bounding-box pre-filter, avoiding PostGIS. The Calendar API enforces
 non-overlapping `[startsAt, endsAt)` windows per job, returning HTTP 409 on conflict.
 

@@ -98,7 +98,7 @@ Adopted accounts retain their previous passwords. Use IDs returned by login/prof
 2. Restart the backend. No records should be inserted; IDs and downloadable files should remain.
 3. Enable bulk in the same project. Verify bulk counts and no duplicates on another restart.
 4. Log in as a candidate, call GET /api/v1/candidates/user/{userId}, then use the returned candidate ID to list applications/resumes. Download and inspect a sample PDF.
-5. Exercise GET /api/v1/jobs?status=OPEN&category=Technology&limit=5 and salary bounds. Data covers three job states, five categories, and multiple salary ranges. Existing pagination limitations remain as documented in [API contracts](api-contracts.md).
+5. Exercise GET /api/v1/jobs?status=OPEN&category=Technology&limit=5 and salary bounds. Data covers three job states, five categories, and multiple salary ranges. Use the same filters/sort/order when following cursors; see [job discovery](job-discovery.md).
 6. Search around the house at **37.7749, -122.4194**. The first five generated jobs are **0, 4.9, 4.99, 5.01, 5.1 km north** of it. A 5 km search includes the first three and excludes the last two; additional random jobs may match. Identify jobs by returned title/ID, not assumed IDs 1–5.
 
 ~~~sh

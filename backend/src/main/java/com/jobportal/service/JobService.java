@@ -9,12 +9,9 @@ import com.jobportal.exception.ValidationException;
 import com.jobportal.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.LinkedHashMap;
@@ -25,6 +22,9 @@ public class JobService {
 
     @Autowired
     private JobRepository jobRepository;
+
+    @Autowired
+    private JobSearchService discovery;
 
     private static final double EARTH_RADIUS_KM = 6371.0;
 
@@ -65,73 +65,17 @@ public class JobService {
     }
 
     public Page<Job> searchJobsWithPagination(String title, String location, String skills, Pageable pageable) {
-        if (title != null && !title.trim().isEmpty()) {
-            return jobRepository.findByTitleContainingIgnoreCase(title, pageable);
-        } else if (location != null && !location.trim().isEmpty()) {
-            return jobRepository.findByLocationContainingIgnoreCase(location, pageable);
-        } else {
-            return jobRepository.findAll(pageable);
-        }
+        return jobRepository.searchJobs(title, location, skills, pageable);
     }
 
-    /**
-     * Cursor-based (keyset) pagination for the List API.
-     * Returns a map with: data, has_more, next_cursor, total_returned.
-     */
     public Map<String, Object> findWithCursorPagination(
             String status, String category, Integer minPrice, Integer maxPrice,
-            String after, int limit, String sortField, String order) {
-
-        validatePageSize(limit);
-        validateFilters(status, minPrice, maxPrice);
-        if (order != null && !java.util.Set.of("asc", "desc").contains(order.toLowerCase(java.util.Locale.ROOT))) throw new ValidationException("order must be asc or desc");
-        Integer afterId = null;
-        if (after != null && !after.isBlank()) {
-            try {
-                String decoded = new String(Base64.getDecoder().decode(after));
-                afterId = Integer.parseInt(decoded);
-                if (afterId <= 0) throw new ValidationException("Cursor ID must be positive");
-            } catch (Exception e) {
-                throw new ValidationException("Invalid cursor value in 'after' parameter");
-            }
-        }
-
-        // Request one extra to determine has_more
-        Sort sort = "asc".equalsIgnoreCase(order)
-            ? Sort.by(Sort.Direction.ASC, mapSortField(sortField))
-            : Sort.by(Sort.Direction.DESC, mapSortField(sortField));
-
-        Pageable pageable = PageRequest.of(0, limit + 1, sort);
-        List<Job> results = jobRepository.findWithFiltersAndCursor(
-            status, category, minPrice, maxPrice, afterId, pageable
-        );
-
-        boolean hasMore = results.size() > limit;
-        List<Job> page = hasMore ? results.subList(0, limit) : results;
-
-        String nextCursor = null;
-        if (hasMore && !page.isEmpty()) {
-            Job last = page.get(page.size() - 1);
-            nextCursor = Base64.getEncoder().encodeToString(String.valueOf(last.getId()).getBytes());
-        }
-
+            String after, int limit, String sortField, String order, String title, String location, String skills) {
+        var page = discovery.jobs(new JobSearchService.Filters(status, category, minPrice, maxPrice, title, location, skills), after, limit, sortField, order);
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("data", page);
-        response.put("has_more", hasMore);
-        response.put("next_cursor", nextCursor);
-        response.put("limit", limit);
+        response.put("data", page.items()); response.put("has_more", page.hasMore());
+        response.put("next_cursor", page.hasMore() ? page.endCursor() : null); response.put("limit", limit);
         return response;
-    }
-
-    private String mapSortField(String field) {
-        if (field == null) return "createdAt";
-        return switch (field.toLowerCase()) {
-            case "title" -> "title";
-            case "created_at", "createdat" -> "createdAt";
-            case "min_price", "min_salary", "minsalary" -> "minSalary";
-            case "max_price", "max_salary", "maxsalary" -> "maxSalary";
-            default -> "createdAt";
-        };
     }
 
     // --- Geospatial ---
@@ -143,24 +87,47 @@ public class JobService {
     public List<Job> findJobsWithinRadius(double lat, double lon, double radiusKm) {
         validateCoordinates(lat, lon);
         if (!Double.isFinite(radiusKm) || radiusKm <= 0) throw new ValidationException("radius_km must be positive and finite");
-        // Use bounding box first then filter with Haversine
-        double latDelta = radiusKm / EARTH_RADIUS_KM * (180.0 / Math.PI);
-        double lonDelta = latDelta / Math.cos(Math.toRadians(lat));
-
-        List<Job> candidates = jobRepository.findByBoundingBox(
-            lat - latDelta, lon - lonDelta, lat + latDelta, lon + lonDelta
-        );
-
+        // Exact spherical-cap bounds, padded by 0.1 mm for floating-point boundary comparisons.
+        double angular = Math.min(Math.PI, (radiusKm + 1e-7) / EARTH_RADIUS_KM);
+        double latitude = Math.toRadians(lat);
+        double minLat = Math.max(-90, Math.toDegrees(latitude - angular));
+        double maxLat = Math.min(90, Math.toDegrees(latitude + angular));
+        List<Job> candidates;
+        if (minLat <= -90 || maxLat >= 90) {
+            candidates = jobRepository.findByBoundingBox(minLat, -180.0, maxLat, 180.0);
+        } else {
+            double longitudeDelta = Math.toDegrees(Math.asin(Math.min(1.0, Math.sin(angular) / Math.cos(latitude))));
+            candidates = longitudeBox(minLat, normalizeLongitude(lon - longitudeDelta), maxLat, normalizeLongitude(lon + longitudeDelta));
+        }
         return candidates.stream()
-            .filter(j -> haversineKm(lat, lon, j.getLatitude(), j.getLongitude()) <= radiusKm)
-            .collect(Collectors.toList());
+                .filter(j -> haversineKm(lat, lon, j.getLatitude(), j.getLongitude()) <= radiusKm + 1e-7)
+                .sorted(java.util.Comparator.comparing(Job::getId)).collect(Collectors.toList());
     }
 
     public List<Job> findJobsInBoundingBox(double minLat, double minLon, double maxLat, double maxLon) {
         validateCoordinates(minLat, minLon);
         validateCoordinates(maxLat, maxLon);
-        if (minLat > maxLat || minLon > maxLon) throw new ValidationException("Bounding-box minimums must not exceed maximums");
-        return jobRepository.findByBoundingBox(minLat, minLon, maxLat, maxLon);
+        if (minLat > maxLat) throw new ValidationException("Minimum latitude must not exceed maximum latitude");
+        return longitudeBox(minLat, minLon, maxLat, maxLon);
+    }
+
+    private List<Job> longitudeBox(double minLat, double minLon, double maxLat, double maxLon) {
+        if (minLon <= maxLon && minLon != -180 && maxLon != 180)
+            return jobRepository.findByBoundingBox(minLat, minLon, maxLat, maxLon);
+        Map<Integer, Job> combined = new java.util.TreeMap<>();
+        if (minLon <= maxLon) {
+            jobRepository.findByBoundingBox(minLat, minLon, maxLat, maxLon).forEach(job -> combined.put(job.getId(), job));
+            if (minLon == -180) jobRepository.findByBoundingBox(minLat, 180.0, maxLat, 180.0).forEach(job -> combined.put(job.getId(), job));
+            if (maxLon == 180) jobRepository.findByBoundingBox(minLat, -180.0, maxLat, -180.0).forEach(job -> combined.put(job.getId(), job));
+            return List.copyOf(combined.values());
+        }
+        jobRepository.findByBoundingBox(minLat, minLon, maxLat, 180.0).forEach(job -> combined.put(job.getId(), job));
+        jobRepository.findByBoundingBox(minLat, -180.0, maxLat, maxLon).forEach(job -> combined.put(job.getId(), job));
+        return List.copyOf(combined.values());
+    }
+
+    private double normalizeLongitude(double value) {
+        return ((value + 180) % 360 + 360) % 360 - 180;
     }
 
     private double haversineKm(double lat1, double lon1, double lat2, double lon2) {
@@ -169,6 +136,7 @@ public class JobService {
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
                  + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
                  * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        a = Math.max(0.0, Math.min(1.0, a));
         return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
@@ -177,6 +145,11 @@ public class JobService {
     @CacheEvict(value = "jobs", allEntries = true)
     public Job saveJob(Job job) {
         validateJob(job);
+        if (job.getMinSalary() != null || job.getMaxSalary() != null) {
+            job.setSalaryRange(job.getMinSalary() == null ? "Up to " + job.getMaxSalary()
+                    : job.getMaxSalary() == null ? job.getMinSalary() + "+"
+                    : job.getMinSalary() + " - " + job.getMaxSalary());
+        }
         try {
             return jobRepository.save(job);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
@@ -204,13 +177,6 @@ public class JobService {
     // For GraphQL resolvers
     public List<Job> findJobsByCompanyIds(List<Integer> companyIds) {
         return jobRepository.findByCompanyIdIn(companyIds);
-    }
-
-    public List<Job> findForGraphQL(String status, String category, Integer minPrice, Integer maxPrice, int first, Integer afterId) {
-        validateFilters(status, minPrice, maxPrice);
-        Sort sort = Sort.by(Sort.Direction.ASC, "id");
-        Pageable pageable = PageRequest.of(0, first, sort);
-        return jobRepository.findWithFiltersAndCursor(status, category, minPrice, maxPrice, afterId, pageable);
     }
 
     public static void validatePageSize(int size) {
@@ -256,5 +222,7 @@ public class JobService {
             throw new ValidationException("Unsupported employmentType");
         if ((job.getLatitude() == null) != (job.getLongitude() == null)) throw new ValidationException("Supply both latitude and longitude");
         if (job.getLatitude() != null) validateCoordinates(job.getLatitude(), job.getLongitude());
+        if ((job.getStartsAt() == null) != (job.getEndsAt() == null)) throw new ValidationException("Supply both job time bounds");
+        if (job.getStartsAt() != null && !job.getEndsAt().isAfter(job.getStartsAt())) throw new ValidationException("Job endsAt must be after startsAt");
     }
 }

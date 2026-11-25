@@ -34,64 +34,20 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
         Pageable pageable
     );
 
-    // Advanced filter for List API with cursor-based pagination support
-    @Query("SELECT j FROM Job j WHERE " +
-           "(:status IS NULL OR j.status = :status) AND " +
-           "(:category IS NULL OR j.category = :category) AND " +
-           "(:minPrice IS NULL OR j.minSalary >= :minPrice) AND " +
-           "(:maxPrice IS NULL OR j.maxSalary <= :maxPrice) AND " +
-           "(:afterId IS NULL OR j.id > :afterId)")
-    List<Job> findWithFiltersAndCursor(
-        @Param("status") String status,
-        @Param("category") String category,
-        @Param("minPrice") Integer minPrice,
-        @Param("maxPrice") Integer maxPrice,
-        @Param("afterId") Integer afterId,
-        Pageable pageable
-    );
-
-    @Query("SELECT COUNT(j) FROM Job j WHERE " +
-           "(:status IS NULL OR j.status = :status) AND " +
-           "(:category IS NULL OR j.category = :category) AND " +
-           "(:minPrice IS NULL OR j.minSalary >= :minPrice) AND " +
-           "(:maxPrice IS NULL OR j.maxSalary <= :maxPrice) AND " +
-           "(:afterId IS NULL OR j.id > :afterId)")
-    long countWithFiltersAndCursor(
-        @Param("status") String status,
-        @Param("category") String category,
-        @Param("minPrice") Integer minPrice,
-        @Param("maxPrice") Integer maxPrice,
-        @Param("afterId") Integer afterId
-    );
-
     // Jobs with non-null coordinates
-    @Query("SELECT j FROM Job j WHERE j.latitude IS NOT NULL AND j.longitude IS NOT NULL")
+    @Query("SELECT j FROM Job j WHERE j.latitude IS NOT NULL AND j.longitude IS NOT NULL ORDER BY j.id")
     List<Job> findAllWithCoordinates();
 
     // Bounding-box geospatial query
     @Query("SELECT j FROM Job j WHERE " +
            "j.latitude IS NOT NULL AND j.longitude IS NOT NULL AND " +
            "j.latitude >= :minLat AND j.latitude <= :maxLat AND " +
-           "j.longitude >= :minLon AND j.longitude <= :maxLon")
+           "j.longitude >= :minLon AND j.longitude <= :maxLon ORDER BY j.id")
     List<Job> findByBoundingBox(
         @Param("minLat") Double minLat,
         @Param("minLon") Double minLon,
         @Param("maxLat") Double maxLat,
         @Param("maxLon") Double maxLon
-    );
-
-    // GraphQL Connection queries
-    @Query("SELECT j FROM Job j WHERE " +
-           "(:status IS NULL OR j.status = :status) AND " +
-           "(:category IS NULL OR j.category = :category) AND " +
-           "(:minPrice IS NULL OR j.minSalary >= :minPrice) AND " +
-           "(:maxPrice IS NULL OR j.maxSalary <= :maxPrice)")
-    List<Job> findForGraphQL(
-        @Param("status") String status,
-        @Param("category") String category,
-        @Param("minPrice") Integer minPrice,
-        @Param("maxPrice") Integer maxPrice,
-        Pageable pageable
     );
 
     List<Job> findByCompanyIdIn(List<Integer> companyIds);

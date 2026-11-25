@@ -52,7 +52,8 @@ public class JobMutationResolver implements GraphQLMutationResolver {
 
     public Job updateJob(String id, Map<String, Object> input, DataFetchingEnvironment env) {
         access.requireJobOwner(access.actor(env), Integer.parseInt(id));
-        Job job = jobService.getJobById(Integer.parseInt(id));
+        Job job = new Job();
+        org.springframework.beans.BeanUtils.copyProperties(jobService.getJobById(Integer.parseInt(id)), job);
         if (input.get("title") != null) job.setTitle((String) input.get("title"));
         if (input.get("description") != null) job.setDescription((String) input.get("description"));
         if (input.get("category") != null) job.setCategory((String) input.get("category"));

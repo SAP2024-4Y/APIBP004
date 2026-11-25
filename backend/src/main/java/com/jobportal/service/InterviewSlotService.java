@@ -19,8 +19,9 @@ public class InterviewSlotService {
     private InterviewSlotRepository slotRepository;
 
     public List<InterviewSlot> findByTimeWindow(LocalDateTime startsAt, LocalDateTime endsAt) {
+        if ((startsAt == null) != (endsAt == null)) throw new ValidationException("Supply both starts_at and ends_at or neither");
         if (startsAt != null && endsAt != null) {
-            if (endsAt.isBefore(startsAt)) {
+            if (!endsAt.isAfter(startsAt)) {
                 throw new ValidationException("ends_at must be after starts_at");
             }
             return slotRepository.findAllInRange(startsAt, endsAt);

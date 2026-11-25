@@ -26,6 +26,7 @@ public class JobQueryResolver implements GraphQLQueryResolver {
     public JobConnection jobs(Integer first, String after, String status, String category,
                               Integer minPrice, Integer maxPrice, String sort, String order) {
         int pageSize = first != null ? first : 20;
+        JobService.validatePageSize(pageSize);
         Integer afterId = decodeCursor(after);
 
         List<Job> results = jobService.findForGraphQL(status, category, minPrice, maxPrice, pageSize + 1, afterId);
@@ -48,6 +49,7 @@ public class JobQueryResolver implements GraphQLQueryResolver {
 
     public CompanyConnection companies(Integer first, String after) {
         int pageSize = first != null ? first : 20;
+        JobService.validatePageSize(pageSize);
         List<Company> all = companyRepository.findAll(
             PageRequest.of(0, pageSize + 1, Sort.by(Sort.Direction.ASC, "id"))
         ).getContent();
@@ -90,9 +92,11 @@ public class JobQueryResolver implements GraphQLQueryResolver {
     private Integer decodeCursor(String cursor) {
         if (cursor == null || cursor.isBlank()) return null;
         try {
-            return Integer.parseInt(new String(Base64.getDecoder().decode(cursor)));
+            int id = Integer.parseInt(new String(Base64.getDecoder().decode(cursor)));
+            if (id <= 0) throw new IllegalArgumentException();
+            return id;
         } catch (Exception e) {
-            return null;
+            throw new com.jobportal.exception.ValidationException("Invalid cursor value in after");
         }
     }
 }

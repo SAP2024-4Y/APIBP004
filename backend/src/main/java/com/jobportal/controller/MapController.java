@@ -33,6 +33,12 @@ public class MapController {
             @RequestParam(required = false) Double max_lat,
             @RequestParam(required = false) Double max_lon) {
 
+        boolean radius = latitude != null || longitude != null || radius_km != null;
+        boolean box = min_lat != null || min_lon != null || max_lat != null || max_lon != null;
+        if ((radius && box) || (radius && (latitude == null || longitude == null || radius_km == null))
+                || (box && (min_lat == null || min_lon == null || max_lat == null || max_lon == null))) {
+            throw new com.jobportal.exception.ValidationException("Supply either all radius parameters or all bounding-box parameters, or omit all for an unfiltered map");
+        }
         List<Job> jobs;
 
         if (latitude != null && longitude != null && radius_km != null) {

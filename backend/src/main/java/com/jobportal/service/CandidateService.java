@@ -51,6 +51,8 @@ public class CandidateService {
         
         try {
             return candidateRepository.save(candidate);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw e;
         } catch (Exception e) {
             throw new com.jobportal.exception.ServiceException("Failed to save candidate profile. Please try again later.", e);
         }
@@ -66,6 +68,8 @@ public class CandidateService {
         
         try {
             candidateRepository.deleteById(id);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw e;
         } catch (Exception e) {
             throw new com.jobportal.exception.ServiceException("Failed to delete candidate with ID: " + id + ". Please try again later.", e);
         }

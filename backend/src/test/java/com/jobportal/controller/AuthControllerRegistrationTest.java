@@ -61,7 +61,7 @@ class AuthControllerRegistrationTest {
                         .content(registrationBody(User.Role.ADMIN)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.error").value("Validation Error"))
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.message").value(
                         "Public registration only supports CANDIDATE and COMPANY roles"))
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/register"))
@@ -104,7 +104,7 @@ class AuthControllerRegistrationTest {
                         .content(objectMapper.writeValueAsString(Map.of(
                                 "email", "new@example.com", "password", "password123"))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation Failed"))
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.details[0]").value("role: Role is required"));
 
         verifyNoInteractions(userRepository, passwordEncoder, jwtUtil);

@@ -1,13 +1,22 @@
+"Public job/company discovery and calendar queries. Nested private fields enforce ownership."
 type Query {
+  "Public. first is 1–100 (default 20); after is the prior edge cursor. Sorted by ID ascending; sort/order arguments are currently ignored. Salary bounds must be nonnegative and ordered; status is OPEN/CLOSED/DRAFT."
   jobs(first: Int, after: String, status: String, category: String, minPrice: Int, maxPrice: Int, sort: String, order: String): JobConnection!
+  "Public job detail; positive job ID. Unknown jobs produce RESOURCE_NOT_FOUND."
   job(id: ID!): Job
+  "Public company browsing. first is 1–100 (default 20). after is currently ignored; this query cannot traverse subsequent pages yet."
   companies(first: Int, after: String): CompanyConnection!
+  "Public company detail; unknown IDs return null."
   company(id: ID!): Company
+  "Public local-radius search. Use radiusKm: 5 with the house coordinates for jobs within 5 km. Latitude -90..90, longitude -180..180; radius must be positive and finite. Polar/dateline searches need further work."
   jobsNear(latitude: Float!, longitude: Float!, radiusKm: Float!): [Job!]!
+  "Public bounding-box search. Coordinates must be in range and minimums must not exceed maximums; boxes crossing the dateline are not supported."
   jobsInBox(minLat: Float!, minLon: Float!, maxLat: Float!, maxLon: Float!): [Job!]!
+  "Public overlapping slot search. Supply both ISO local date-times or neither; end must follow start. Candidate identities are redacted by ownership."
   slots(startsAt: String, endsAt: String): [InterviewSlot!]!
 }
 
+"Authenticated writes use Authorization: Bearer JWT. Login is public. Business errors use errors[].extensions.code, usually with HTTP 200."
 type Mutation {
   "Only the owning COMPANY or ADMIN may create a job."
   createJob(input: CreateJobInput!): Job!
@@ -17,6 +26,7 @@ type Mutation {
   deleteJob(id: ID!): Boolean!
   "Candidates book for themselves; COMPANY schedules its jobs; ADMIN may schedule any job."
   createSlot(input: CreateSlotInput!): InterviewSlot!
+  "Public. username is an email, or demo for the seeded demo account. Returns a JWT; does not create a profile. Invalid credentials return UNAUTHORIZED."
   login(username: String!, password: String!): AuthPayload!
 }
 
@@ -101,39 +111,60 @@ type AuthPayload {
   role: String
 }
 
+"Owning COMPANY or ADMIN; companyId must identify an existing company. Unknown input fields are rejected by GraphQL. Job creation does not schedule a separate interview slot."
 input CreateJobInput {
   companyId: Int!
+  "Required, nonblank, 3–255 characters."
   title: String!
+  "Required, nonblank, at least 20 characters."
   description: String!
   category: String
+  "OPEN, CLOSED, or DRAFT; defaults OPEN on creation."
   status: String
   location: String
+  "Nonnegative; must not exceed maxSalary when both are set."
   minSalary: Int
+  "Nonnegative; must not be below minSalary when both are set."
   maxSalary: Int
+  "FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP, FREELANCE; legacy Full-time, Part-time, Contract, Internship, Freelance are also accepted."
   employmentType: String
   skillsRequired: String
+  "Latitude -90..90; supply both coordinates or neither."
   latitude: Float
+  "Longitude -180..180; supply both coordinates or neither."
   longitude: Float
+  "Currently ignored when creating a job; use createSlot for interviews."
   startsAt: String
+  "Currently ignored when creating a job; use createSlot for interviews."
   endsAt: String
 }
 
+"Owning COMPANY or ADMIN. Only non-null supplied fields are changed; null cannot clear a value. Same job field constraints as creation."
 input UpdateJobInput {
+  "If supplied: nonblank, 3–255 characters."
   title: String
+  "If supplied: nonblank, at least 20 characters."
   description: String
   category: String
+  "OPEN, CLOSED, or DRAFT; defaults OPEN on creation."
   status: String
   location: String
+  "Nonnegative; must not exceed maxSalary when both are set."
   minSalary: Int
+  "Nonnegative; must not be below minSalary when both are set."
   maxSalary: Int
+  "FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP, FREELANCE; legacy Full-time, Part-time, Contract, Internship, Freelance are also accepted."
   employmentType: String
   skillsRequired: String
 }
 
+"Existing job required. Candidates book themselves, companies book their own jobs, ADMIN books any. End must follow start; same-job overlap returns SLOT_CONFLICT. No application prerequisite is enforced."
 input CreateSlotInput {
   jobId: Int!
   "Candidates may omit this or supply their own candidate profile ID."
   candidateId: Int
+  "Required ISO local date-time, for example 2027-01-10T10:00:00. Trailing Z is accepted without timezone conversion."
   startsAt: String!
+  "Required ISO local date-time later than startsAt."
   endsAt: String!
 }

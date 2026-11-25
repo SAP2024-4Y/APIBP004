@@ -56,6 +56,8 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
+        if (request.getEmail() == null || request.getEmail().isBlank() || request.getPassword() == null || request.getPassword().isBlank())
+            throw new ValidationException("Email and password are required");
         User user = userRepository.findByEmail(request.getEmail());
         if (user == null) {
             throw new UnauthorizedException("Invalid email or password");

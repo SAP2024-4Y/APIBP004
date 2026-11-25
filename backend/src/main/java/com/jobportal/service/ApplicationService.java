@@ -89,6 +89,8 @@ public class ApplicationService {
     }
 
     public Application saveApplication(Application application) {
+        candidateService.getCandidateById(application.getCandidateId());
+        jobService.getJobById(application.getJobId());
         if (application.getId() == null) {
             // Check for duplicate applications
             Application existingApplication = applicationRepository.findByCandidateIdAndJobId(
@@ -141,6 +143,7 @@ public class ApplicationService {
     }
 
     public Application updateApplicationStatus(Integer id, Application.ApplicationStatus status) {
+        if (status == null) throw new ValidationException("Application status is required");
         Application application = getApplicationById(id);
         Application.ApplicationStatus oldStatus = application.getStatus();
         application.setStatus(status);

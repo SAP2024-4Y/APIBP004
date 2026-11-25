@@ -1,10 +1,11 @@
 package com.jobportal.controller;
 
 import com.jobportal.entity.User.Role;
-import com.jobportal.exception.ValidationException;
 import org.springframework.security.access.AccessDeniedException;
 
 import com.jobportal.entity.Company;
+import com.jobportal.dto.CreateCompanyDto;
+import jakarta.validation.Valid;
 import com.jobportal.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.jobportal.security.ResourceAuthorization;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @io.swagger.v3.oas.annotations.tags.Tag(name = "Company", description = "Company profiles are public. Profile creation binds to a COMPANY user; writes require the owner or ADMIN. Only ADMIN may set approval.")
+@org.springframework.validation.annotation.Validated
 @RestController
 @RequestMapping("/api/v1/companies")
 @CrossOrigin(origins = "*")
@@ -31,21 +33,27 @@ public class CompanyController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Company> getCompanyById(@PathVariable Integer id) {
+    public ResponseEntity<Company> getCompanyById(@jakarta.validation.constraints.Positive @PathVariable Integer id) {
         Company company = companyService.getCompanyById(id);
         return ResponseEntity.ok(company);
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<Company> getCompanyByUserId(@PathVariable Integer userId) {
+    public ResponseEntity<Company> getCompanyByUserId(@jakarta.validation.constraints.Positive @PathVariable Integer userId) {
         access.requireCurrentUser(userId);
         Company company = companyService.getCompanyByUserId(userId);
         return ResponseEntity.ok(company);
     }
 
     @PostMapping
-    public ResponseEntity<Company> createCompany(@RequestBody Company company) {
-        if (company.getId() != null) throw new ValidationException("New company must not specify an ID");
+    public ResponseEntity<Company> createCompany(@Valid @RequestBody CreateCompanyDto request) {
+        Company company = new Company();
+        company.setUserId(request.getUserId());
+        company.setCompanyName(request.getCompanyName());
+        company.setIndustry(request.getIndustry());
+        company.setAddress(request.getAddress());
+        if (request.getApproved() != null) company.setApproved(request.getApproved());
+
         company.setUserId(access.profileOwner(company.getUserId(), Role.COMPANY));
         if (!access.currentActor().isAdmin()) company.setApproved(false);
         Company savedCompany = companyService.saveCompany(company);
@@ -53,7 +61,7 @@ public class CompanyController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Company> updateCompany(@PathVariable Integer id, @RequestBody Company companyDetails) {
+    public ResponseEntity<Company> updateCompany(@jakarta.validation.constraints.Positive @PathVariable Integer id, @Valid @RequestBody CreateCompanyDto companyDetails) {
         access.requireCompanyOwner(id);
         Company company = companyService.getCompanyById(id);
         if (companyDetails.getUserId() != null && !companyDetails.getUserId().equals(company.getUserId())) {
@@ -68,7 +76,7 @@ public class CompanyController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCompany(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteCompany(@jakarta.validation.constraints.Positive @PathVariable Integer id) {
         access.requireCompanyOwner(id);
         companyService.deleteCompany(id);
         return ResponseEntity.noContent().build(); // Return 204

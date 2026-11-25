@@ -1,0 +1,3501 @@
+{
+  "schemas": {
+    "JobPage": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/Job"
+          }
+        },
+        "has_more": {
+          "type": "boolean"
+        },
+        "next_cursor": {
+          "type": "string",
+          "nullable": true
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "data",
+        "has_more",
+        "next_cursor",
+        "limit"
+      ]
+    },
+    "ResumeUploadResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "resume": {
+          "$ref": "#/components/schemas/Resume"
+        },
+        "success": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "message",
+        "resume",
+        "success"
+      ]
+    },
+    "ResumeDeleteResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "message",
+        "success"
+      ]
+    },
+    "HealthResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "service": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "service"
+      ]
+    },
+    "TokenResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "token",
+        "message",
+        "email",
+        "role"
+      ]
+    },
+    "GeoJobProperties": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "title": {
+          "type": "string",
+          "nullable": true
+        },
+        "location": {
+          "type": "string",
+          "nullable": true
+        },
+        "category": {
+          "type": "string",
+          "nullable": true
+        },
+        "status": {
+          "type": "string",
+          "nullable": true
+        },
+        "employmentType": {
+          "type": "string",
+          "nullable": true
+        },
+        "minSalary": {
+          "type": "integer",
+          "nullable": true
+        },
+        "maxSalary": {
+          "type": "integer",
+          "nullable": true
+        },
+        "companyId": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "location",
+        "category",
+        "status",
+        "employmentType",
+        "minSalary",
+        "maxSalary",
+        "companyId"
+      ]
+    },
+    "GeoPoint": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "Point"
+          ]
+        },
+        "coordinates": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": "Longitude first, latitude second."
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ]
+    },
+    "GeoFeature": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "Feature"
+          ]
+        },
+        "geometry": {
+          "$ref": "#/components/schemas/GeoPoint"
+        },
+        "properties": {
+          "$ref": "#/components/schemas/GeoJobProperties"
+        }
+      },
+      "required": [
+        "type",
+        "geometry",
+        "properties"
+      ]
+    },
+    "GeoFeatureCollection": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "FeatureCollection"
+          ]
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/GeoFeature"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "features"
+      ]
+    }
+  },
+  "modelFields": {
+    "Job": {
+      "id": {
+        "description": "Server-generated resource identifier.",
+        "nullable": false
+      },
+      "companyId": {
+        "description": "Company-profile ID, not user ID.",
+        "nullable": false
+      },
+      "title": {
+        "description": "Title.",
+        "nullable": false
+      },
+      "description": {
+        "description": "Description.",
+        "nullable": true
+      },
+      "skillsRequired": {
+        "description": "Skills required.",
+        "nullable": true
+      },
+      "salaryRange": {
+        "description": "Legacy free-text salary; numeric bounds are separate fields.",
+        "nullable": true
+      },
+      "location": {
+        "description": "Location.",
+        "nullable": true
+      },
+      "employmentType": {
+        "description": "Employment type.",
+        "nullable": true
+      },
+      "createdAt": {
+        "description": "Server-assigned local date-time; offset is not serialized.",
+        "nullable": true,
+        "format": null
+      },
+      "latitude": {
+        "description": "Latitude in decimal degrees, or null if not geocoded.",
+        "nullable": true
+      },
+      "longitude": {
+        "description": "Longitude in decimal degrees, or null if not geocoded.",
+        "nullable": true
+      },
+      "minSalary": {
+        "description": "Min salary.",
+        "nullable": true
+      },
+      "maxSalary": {
+        "description": "Max salary.",
+        "nullable": true
+      },
+      "category": {
+        "description": "Category.",
+        "nullable": true
+      },
+      "status": {
+        "description": "Status.",
+        "nullable": false
+      },
+      "startsAt": {
+        "description": "Local date-time without an offset. Job time fields are separate from interview slots.",
+        "nullable": true,
+        "format": null
+      },
+      "endsAt": {
+        "description": "Local date-time without an offset.",
+        "nullable": true,
+        "format": null
+      }
+    },
+    "JobResponseDto": {
+      "id": {
+        "description": "Server-generated resource identifier.",
+        "nullable": false
+      },
+      "companyId": {
+        "description": "Company-profile ID, not user ID.",
+        "nullable": false
+      },
+      "title": {
+        "description": "Title.",
+        "nullable": false
+      },
+      "description": {
+        "description": "Description.",
+        "nullable": true
+      },
+      "skillsRequired": {
+        "description": "Skills required.",
+        "nullable": true
+      },
+      "salaryRange": {
+        "description": "Legacy free-text salary; numeric bounds are separate fields.",
+        "nullable": true
+      },
+      "location": {
+        "description": "Location.",
+        "nullable": true
+      },
+      "employmentType": {
+        "description": "Employment type.",
+        "nullable": true
+      },
+      "createdAt": {
+        "description": "Server-assigned local date-time; offset is not serialized.",
+        "nullable": true,
+        "format": null
+      },
+      "latitude": {
+        "description": "Latitude in decimal degrees, or null if not geocoded.",
+        "nullable": true
+      },
+      "longitude": {
+        "description": "Longitude in decimal degrees, or null if not geocoded.",
+        "nullable": true
+      },
+      "minSalary": {
+        "description": "Min salary.",
+        "nullable": true
+      },
+      "maxSalary": {
+        "description": "Max salary.",
+        "nullable": true
+      },
+      "category": {
+        "description": "Category.",
+        "nullable": true
+      },
+      "status": {
+        "description": "Status.",
+        "nullable": false
+      },
+      "startsAt": {
+        "description": "Local date-time without an offset. Job time fields are separate from interview slots.",
+        "nullable": true,
+        "format": null
+      },
+      "endsAt": {
+        "description": "Local date-time without an offset.",
+        "nullable": true,
+        "format": null
+      }
+    },
+    "Company": {
+      "id": {
+        "description": "Server-generated resource identifier.",
+        "nullable": false
+      },
+      "userId": {
+        "description": "Associated user-account ID; differs from the profile ID.",
+        "nullable": false
+      },
+      "companyName": {
+        "description": "Company name.",
+        "nullable": false
+      },
+      "industry": {
+        "description": "Industry.",
+        "nullable": true
+      },
+      "address": {
+        "description": "Address.",
+        "nullable": true
+      },
+      "approved": {
+        "description": "Approved.",
+        "nullable": false
+      }
+    },
+    "Candidate": {
+      "id": {
+        "description": "Server-generated resource identifier.",
+        "nullable": false
+      },
+      "userId": {
+        "description": "Associated user-account ID; differs from the profile ID.",
+        "nullable": false
+      },
+      "fullName": {
+        "description": "Full name.",
+        "nullable": false
+      },
+      "phone": {
+        "description": "Phone.",
+        "nullable": true
+      },
+      "location": {
+        "description": "Location.",
+        "nullable": true
+      },
+      "experience": {
+        "description": "Experience.",
+        "nullable": true
+      }
+    },
+    "Application": {
+      "id": {
+        "description": "Server-generated resource identifier.",
+        "nullable": false
+      },
+      "candidateId": {
+        "description": "Candidate-profile ID, not user ID.",
+        "nullable": false
+      },
+      "jobId": {
+        "description": "Associated job-posting ID.",
+        "nullable": false
+      },
+      "status": {
+        "description": "Status.",
+        "nullable": false
+      },
+      "appliedAt": {
+        "description": "Server-assigned local date-time of application submission.",
+        "nullable": true,
+        "format": null
+      }
+    },
+    "Resume": {
+      "id": {
+        "description": "Server-generated resource identifier.",
+        "nullable": false
+      },
+      "candidateId": {
+        "description": "Candidate-profile ID, not user ID.",
+        "nullable": false
+      },
+      "filePath": {
+        "description": "Opaque storage reference; retrieve bytes through GET /api/v1/resumes/download/{id}.",
+        "nullable": false
+      },
+      "uploadedAt": {
+        "description": "Server-assigned local date-time of upload.",
+        "nullable": true,
+        "format": null
+      }
+    },
+    "InterviewSlot": {
+      "id": {
+        "description": "Server-generated resource identifier.",
+        "nullable": false
+      },
+      "jobId": {
+        "description": "Associated job-posting ID.",
+        "nullable": false
+      },
+      "candidateId": {
+        "description": "Candidate-profile ID, not user ID.",
+        "nullable": true
+      },
+      "startsAt": {
+        "description": "Local date-time without an offset. Job time fields are separate from interview slots.",
+        "nullable": false,
+        "format": null
+      },
+      "endsAt": {
+        "description": "Local date-time without an offset.",
+        "nullable": false,
+        "format": null
+      },
+      "status": {
+        "description": "Status.",
+        "nullable": false
+      },
+      "createdAt": {
+        "description": "Server-assigned local date-time; offset is not serialized.",
+        "nullable": true,
+        "format": null
+      }
+    },
+    "UserResponseDto": {
+      "id": {
+        "description": "Server-generated resource identifier.",
+        "nullable": false
+      },
+      "email": {
+        "description": "Email.",
+        "nullable": false
+      },
+      "role": {
+        "description": "Role.",
+        "nullable": false
+      },
+      "createdAt": {
+        "description": "Server-assigned local date-time; offset is not serialized.",
+        "nullable": true,
+        "format": null
+      }
+    },
+    "AuthResponse": {
+      "token": {
+        "description": "JWT used in the Authorization: Bearer header.",
+        "nullable": false
+      },
+      "email": {
+        "description": "Email.",
+        "nullable": false
+      },
+      "role": {
+        "description": "Role.",
+        "nullable": false
+      },
+      "userId": {
+        "description": "Associated user-account ID; differs from the profile ID.",
+        "nullable": false
+      },
+      "message": {
+        "description": "Message.",
+        "nullable": false
+      }
+    }
+  },
+  "parameters": {
+    "id": {
+      "description": "Positive resource ID from a previous response. The resource depends on this route.",
+      "example": 1,
+      "schema": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 1
+      }
+    },
+    "userId": {
+      "description": "Positive ID of the named record. Profile IDs and user IDs are distinct.",
+      "example": 1,
+      "schema": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 1
+      }
+    },
+    "candidateId": {
+      "description": "Positive ID of the named record. Profile IDs and user IDs are distinct.",
+      "example": 1,
+      "schema": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 1
+      }
+    },
+    "companyId": {
+      "description": "Positive ID of the named record. Profile IDs and user IDs are distinct.",
+      "example": 1,
+      "schema": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 1
+      }
+    },
+    "jobId": {
+      "description": "Positive ID of the named record. Profile IDs and user IDs are distinct.",
+      "example": 1,
+      "schema": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 1
+      }
+    },
+    "limit": {
+      "description": "Page size, 1–100; default 20.",
+      "example": 20,
+      "schema": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 1,
+        "maximum": 100,
+        "default": 20
+      }
+    },
+    "after": {
+      "description": "Opaque cursor copied from next_cursor. Omit for the first page. Current ordering limitations are described above.",
+      "example": "MQ=="
+    },
+    "status": {
+      "description": "Exact job lifecycle status.",
+      "example": "OPEN",
+      "schema": {
+        "type": "string",
+        "enum": [
+          "OPEN",
+          "CLOSED",
+          "DRAFT"
+        ]
+      }
+    },
+    "category": {
+      "description": "Exact category filter.",
+      "example": "Technology"
+    },
+    "min_price": {
+      "description": "Nonnegative salary bound. Minimum must not exceed maximum.",
+      "example": 90000,
+      "schema": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 0
+      }
+    },
+    "max_price": {
+      "description": "Nonnegative salary bound. Minimum must not exceed maximum.",
+      "example": 90000,
+      "schema": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 0
+      }
+    },
+    "sort": {
+      "description": "Sort field; unrecognized fields currently fall back to created_at. ID-based continuation does not yet support reliable traversal for every sort.",
+      "example": "created_at"
+    },
+    "order": {
+      "description": "Sort direction; default desc.",
+      "example": "desc",
+      "schema": {
+        "type": "string",
+        "enum": [
+          "asc",
+          "desc"
+        ],
+        "default": "desc"
+      }
+    },
+    "title": {
+      "description": "Legacy case-insensitive title substring; nonblank.",
+      "example": "Engineer"
+    },
+    "location": {
+      "description": "Legacy case-insensitive location substring; nonblank.",
+      "example": "San Francisco"
+    },
+    "skills": {
+      "description": "Legacy parameter: currently ignored. Triggers the bare-array response when no modern filters are supplied.",
+      "example": "Java"
+    },
+    "latitude": {
+      "description": "Latitude in decimal degrees, between -90 and 90.",
+      "example": 37.7749,
+      "schema": {
+        "type": "number",
+        "format": "double",
+        "minimum": -90,
+        "maximum": 90
+      }
+    },
+    "min_lat": {
+      "description": "Latitude in decimal degrees, between -90 and 90.",
+      "example": 37.7749,
+      "schema": {
+        "type": "number",
+        "format": "double",
+        "minimum": -90,
+        "maximum": 90
+      }
+    },
+    "max_lat": {
+      "description": "Latitude in decimal degrees, between -90 and 90.",
+      "example": 37.7749,
+      "schema": {
+        "type": "number",
+        "format": "double",
+        "minimum": -90,
+        "maximum": 90
+      }
+    },
+    "longitude": {
+      "description": "Longitude in decimal degrees, between -180 and 180.",
+      "example": -122.4194,
+      "schema": {
+        "type": "number",
+        "format": "double",
+        "minimum": -180,
+        "maximum": 180
+      }
+    },
+    "min_lon": {
+      "description": "Longitude in decimal degrees, between -180 and 180.",
+      "example": -122.4194,
+      "schema": {
+        "type": "number",
+        "format": "double",
+        "minimum": -180,
+        "maximum": 180
+      }
+    },
+    "max_lon": {
+      "description": "Longitude in decimal degrees, between -180 and 180.",
+      "example": -122.4194,
+      "schema": {
+        "type": "number",
+        "format": "double",
+        "minimum": -180,
+        "maximum": 180
+      }
+    },
+    "radius_km": {
+      "description": "Positive finite distance in kilometres; 5 finds jobs within 5 km.",
+      "example": 5,
+      "schema": {
+        "type": "number",
+        "format": "double",
+        "minimum": 0,
+        "exclusiveMinimum": true
+      }
+    },
+    "starts_at": {
+      "description": "ISO local date-time. Supply both bounds; end must follow start. Offset normalization is not implemented.",
+      "example": "2027-01-10T10:00:00"
+    },
+    "ends_at": {
+      "description": "ISO local date-time. Supply both bounds; end must follow start. Offset normalization is not implemented.",
+      "example": "2027-01-10T10:00:00"
+    }
+  },
+  "operations": {
+    "GET /health": {
+      "summary": "Check service health",
+      "description": "Use case: Check service health.\n\nConsumers: deployment probes.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: No prerequisites. Reports process availability; this is not a database readiness check.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "200",
+      "successDescription": "Check service health completed",
+      "errors": {
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/HealthResponse"
+      },
+      "example": {
+        "status": "ok",
+        "service": "job-portal-api"
+      }
+    },
+    "POST /api/v1/auth/register": {
+      "summary": "Register an account",
+      "description": "Use case: Register an account.\n\nConsumers: candidate and recruiter onboarding screens.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Choose CANDIDATE or COMPANY; ADMIN is rejected. Password length 6–72 characters. Creates the user and returns a JWT; create a profile in a separate request.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "201",
+      "successDescription": "Register an account completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "409": {
+          "trigger": "A duplicate account or candidate-job application already exists.",
+          "examples": {
+            "DUPLICATE_RESOURCE": "Email already registered"
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/AuthResponse"
+      },
+      "example": {
+        "token": "eyJhbGciOiJIUzI1NiJ9.example.signature",
+        "email": "alex@example.com",
+        "role": "CANDIDATE",
+        "userId": 3,
+        "message": "User registered successfully"
+      },
+      "request": {
+        "email": "alex@example.com",
+        "password": "password123",
+        "role": "CANDIDATE"
+      }
+    },
+    "POST /api/v1/auth/login": {
+      "summary": "Authenticate an existing account",
+      "description": "Use case: Authenticate an existing account.\n\nConsumers: web/mobile login screens.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Use a registered email/password. Returns a JWT for Authorization: Bearer <token>. Does not create a profile.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "200",
+      "successDescription": "Authenticate an existing account completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Credentials do not match an existing account.",
+          "examples": {
+            "UNAUTHORIZED": "Invalid email or password"
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/AuthResponse"
+      },
+      "example": {
+        "token": "eyJhbGciOiJIUzI1NiJ9.example.signature",
+        "email": "alex@example.com",
+        "role": "CANDIDATE",
+        "userId": 3,
+        "message": "Login successful"
+      },
+      "request": {
+        "email": "alex@example.com",
+        "password": "password123"
+      }
+    },
+    "POST /api/v1/auth/token": {
+      "summary": "Issue a token using username or email",
+      "description": "Use case: Issue a token using username or email.\n\nConsumers: demo clients and API evaluation scripts.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Supply username or email and password. username takes precedence; demo resolves to demo@jobportal.com. No userId is returned by this endpoint.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "200",
+      "successDescription": "Issue a token using username or email completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Credentials do not match an existing account.",
+          "examples": {
+            "UNAUTHORIZED": "Invalid email or password"
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/TokenResponse"
+      },
+      "example": {
+        "token": "eyJhbGciOiJIUzI1NiJ9.example.signature",
+        "message": "Token issued successfully",
+        "email": "demo@jobportal.com",
+        "role": "ADMIN"
+      },
+      "request": {
+        "username": "demo",
+        "password": "demo-password"
+      }
+    },
+    "GET /api/v1/jobs": {
+      "summary": "Browse and filter job postings",
+      "description": "Use case: Browse and filter job postings.\n\nConsumers: job search pages and API clients.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Normally returns a page envelope. limit is 1–100. next_cursor is null on a final page. Legacy title/location/skills without status/category/salary/after returns a bare array; title takes precedence, then location; skills is currently ignored. Cursor ordering across non-ID sorts is not reliable yet; do not use it for exhaustive exports.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "200",
+      "successDescription": "Browse and filter job postings completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/JobPage"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobResponseDto"
+            }
+          }
+        ]
+      },
+      "example": {
+        "data": [
+          {
+            "id": 1,
+            "companyId": 1,
+            "title": "Backend Engineer",
+            "description": "Build and maintain the recruitment platform APIs.",
+            "skillsRequired": "Java, Spring Boot, PostgreSQL",
+            "salaryRange": "90000-130000",
+            "location": "San Francisco",
+            "employmentType": "Full-time",
+            "createdAt": "2026-11-25T10:00:00",
+            "latitude": 37.7749,
+            "longitude": -122.4194,
+            "minSalary": 90000,
+            "maxSalary": 130000,
+            "category": "Technology",
+            "status": "OPEN",
+            "startsAt": null,
+            "endsAt": null
+          }
+        ],
+        "has_more": false,
+        "next_cursor": null,
+        "limit": 20
+      },
+      "empty": {
+        "data": [],
+        "has_more": false,
+        "next_cursor": null,
+        "limit": 20
+      },
+      "additionalExamples": {
+        "nextPage": {
+          "data": [
+            {
+              "id": 1,
+              "companyId": 1,
+              "title": "Backend Engineer",
+              "description": "Build and maintain the recruitment platform APIs.",
+              "skillsRequired": "Java, Spring Boot, PostgreSQL",
+              "salaryRange": "90000-130000",
+              "location": "San Francisco",
+              "employmentType": "Full-time",
+              "createdAt": "2026-11-25T10:00:00",
+              "latitude": 37.7749,
+              "longitude": -122.4194,
+              "minSalary": 90000,
+              "maxSalary": 130000,
+              "category": "Technology",
+              "status": "OPEN",
+              "startsAt": null,
+              "endsAt": null
+            }
+          ],
+          "has_more": true,
+          "next_cursor": "MQ==",
+          "limit": 20
+        },
+        "legacyArray": [
+          {
+            "id": 1,
+            "companyId": 1,
+            "title": "Backend Engineer",
+            "description": "Build and maintain the recruitment platform APIs.",
+            "skillsRequired": "Java, Spring Boot, PostgreSQL",
+            "salaryRange": "90000-130000",
+            "location": "San Francisco",
+            "employmentType": "Full-time",
+            "createdAt": "2026-11-25T10:00:00",
+            "latitude": 37.7749,
+            "longitude": -122.4194,
+            "minSalary": 90000,
+            "maxSalary": 130000,
+            "category": "Technology",
+            "status": "OPEN",
+            "startsAt": null,
+            "endsAt": null
+          }
+        ]
+      }
+    },
+    "GET /api/v1/jobs/{id}": {
+      "summary": "View a job posting",
+      "description": "Use case: View a job posting.\n\nConsumers: job detail screens.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Use the job ID from discovery. No mutation.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "200",
+      "successDescription": "View a job posting completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Job not found with ID: 1. The job may have been removed or the ID is incorrect."
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/JobResponseDto"
+      },
+      "example": {
+        "id": 1,
+        "companyId": 1,
+        "title": "Backend Engineer",
+        "description": "Build and maintain the recruitment platform APIs.",
+        "skillsRequired": "Java, Spring Boot, PostgreSQL",
+        "salaryRange": "90000-130000",
+        "location": "San Francisco",
+        "employmentType": "Full-time",
+        "createdAt": "2026-11-25T10:00:00",
+        "latitude": 37.7749,
+        "longitude": -122.4194,
+        "minSalary": 90000,
+        "maxSalary": 130000,
+        "category": "Technology",
+        "status": "OPEN",
+        "startsAt": null,
+        "endsAt": null
+      }
+    },
+    "GET /api/v1/jobs/company/{companyId}": {
+      "summary": "List jobs for a company",
+      "description": "Use case: List jobs for a company.\n\nConsumers: company profile pages.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Use a company profile ID, not a user ID. Returns an unpaginated list; no matches returns an empty array.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "200",
+      "successDescription": "List jobs for a company completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/JobResponseDto"
+        }
+      },
+      "example": [
+        {
+          "id": 1,
+          "companyId": 1,
+          "title": "Backend Engineer",
+          "description": "Build and maintain the recruitment platform APIs.",
+          "skillsRequired": "Java, Spring Boot, PostgreSQL",
+          "salaryRange": "90000-130000",
+          "location": "San Francisco",
+          "employmentType": "Full-time",
+          "createdAt": "2026-11-25T10:00:00",
+          "latitude": 37.7749,
+          "longitude": -122.4194,
+          "minSalary": 90000,
+          "maxSalary": 130000,
+          "category": "Technology",
+          "status": "OPEN",
+          "startsAt": null,
+          "endsAt": null
+        }
+      ],
+      "empty": []
+    },
+    "GET /api/v1/jobs/search/title": {
+      "summary": "Search jobs by title",
+      "description": "Use case: Search jobs by title.\n\nConsumers: legacy search clients.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Deprecated. Use GET /api/v1/jobs?title=... instead. Case-insensitive substring search; blank search terms are rejected. Response remains a bare array.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "200",
+      "successDescription": "Search jobs by title completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Job"
+        }
+      },
+      "example": [
+        {
+          "id": 1,
+          "companyId": 1,
+          "title": "Backend Engineer",
+          "description": "Build and maintain the recruitment platform APIs.",
+          "skillsRequired": "Java, Spring Boot, PostgreSQL",
+          "salaryRange": "90000-130000",
+          "location": "San Francisco",
+          "employmentType": "Full-time",
+          "createdAt": "2026-11-25T10:00:00",
+          "latitude": 37.7749,
+          "longitude": -122.4194,
+          "minSalary": 90000,
+          "maxSalary": 130000,
+          "category": "Technology",
+          "status": "OPEN",
+          "startsAt": null,
+          "endsAt": null
+        }
+      ],
+      "empty": [],
+      "deprecated": true
+    },
+    "GET /api/v1/jobs/search/location": {
+      "summary": "Search jobs by location",
+      "description": "Use case: Search jobs by location.\n\nConsumers: legacy search clients.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Deprecated. Use GET /api/v1/jobs?location=... instead. Case-insensitive substring search; blank search terms are rejected. Response remains a bare array.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "200",
+      "successDescription": "Search jobs by location completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Job"
+        }
+      },
+      "example": [
+        {
+          "id": 1,
+          "companyId": 1,
+          "title": "Backend Engineer",
+          "description": "Build and maintain the recruitment platform APIs.",
+          "skillsRequired": "Java, Spring Boot, PostgreSQL",
+          "salaryRange": "90000-130000",
+          "location": "San Francisco",
+          "employmentType": "Full-time",
+          "createdAt": "2026-11-25T10:00:00",
+          "latitude": 37.7749,
+          "longitude": -122.4194,
+          "minSalary": 90000,
+          "maxSalary": 130000,
+          "category": "Technology",
+          "status": "OPEN",
+          "startsAt": null,
+          "endsAt": null
+        }
+      ],
+      "empty": [],
+      "deprecated": true
+    },
+    "POST /api/v1/jobs": {
+      "summary": "Publish a job posting",
+      "description": "Use case: Publish a job posting.\n\nConsumers: recruiter dashboard.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Create a COMPANY profile first. companyId must exist and belong to the caller unless ADMIN. Only the listed request fields are accepted; status defaults OPEN. Numeric salary, coordinates, category, and job time fields are not accepted on this REST creation route yet.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "201",
+      "successDescription": "Publish a job posting completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Company not found"
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/JobResponseDto"
+      },
+      "example": {
+        "id": 1,
+        "companyId": 1,
+        "title": "Backend Engineer",
+        "description": "Build and maintain the recruitment platform APIs.",
+        "skillsRequired": "Java, Spring Boot, PostgreSQL",
+        "salaryRange": "90000-130000",
+        "location": "San Francisco",
+        "employmentType": "Full-time",
+        "createdAt": "2026-11-25T10:00:00",
+        "latitude": null,
+        "longitude": null,
+        "minSalary": null,
+        "maxSalary": null,
+        "category": null,
+        "status": "OPEN",
+        "startsAt": null,
+        "endsAt": null
+      },
+      "request": {
+        "companyId": 1,
+        "title": "Backend Engineer",
+        "description": "Build and maintain the recruitment platform APIs.",
+        "skillsRequired": "Java, Spring Boot, PostgreSQL",
+        "salaryRange": "90000-130000",
+        "location": "San Francisco",
+        "employmentType": "Full-time"
+      }
+    },
+    "PUT /api/v1/jobs/{id}": {
+      "summary": "Update a job posting",
+      "description": "Use case: Update a job posting.\n\nConsumers: recruiter dashboard.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Existing job required. title (3–255) and description (at least 20) are required. Basic optional fields are replaced; omitted category/status/numeric salaries are preserved. Salary bounds must be nonnegative and ordered. Coordinates and job times cannot be changed here.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Update a job posting completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Job not found with ID: 1. The job may have been removed or the ID is incorrect."
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/JobResponseDto"
+      },
+      "example": {
+        "id": 1,
+        "companyId": 1,
+        "title": "Backend Engineer",
+        "description": "Build and maintain the recruitment platform APIs.",
+        "skillsRequired": "Java, Spring Boot, PostgreSQL",
+        "salaryRange": "90000-130000",
+        "location": "San Francisco",
+        "employmentType": "Full-time",
+        "createdAt": "2026-11-25T10:00:00",
+        "latitude": 37.7749,
+        "longitude": -122.4194,
+        "minSalary": 90000,
+        "maxSalary": 130000,
+        "category": "Technology",
+        "status": "OPEN",
+        "startsAt": null,
+        "endsAt": null
+      },
+      "request": {
+        "companyId": 1,
+        "title": "Backend Engineer",
+        "description": "Build and maintain the recruitment platform APIs.",
+        "skillsRequired": "Java, Spring Boot, PostgreSQL",
+        "salaryRange": "90000-130000",
+        "location": "San Francisco",
+        "employmentType": "Full-time",
+        "category": "Technology",
+        "status": "OPEN",
+        "minSalary": 90000,
+        "maxSalary": 130000
+      }
+    },
+    "DELETE /api/v1/jobs/{id}": {
+      "summary": "Delete a job posting",
+      "description": "Use case: Delete a job posting.\n\nConsumers: recruiter dashboard.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Permanently deletes the job. Related-record cleanup is not guaranteed by the current scalar-ID model.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "204",
+      "successDescription": "Completed with no response body",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Job not found with ID: 1. The job may have been removed or the ID is incorrect."
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      }
+    },
+    "GET /api/v1/jobs/map": {
+      "summary": "Find jobs near a location or inside a map area",
+      "description": "Use case: Find jobs near a location or inside a map area.\n\nConsumers: map search screens.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: For jobs within 5 km of a house, pass its latitude/longitude and radius_km=5. Supply all three radius parameters OR all four box parameters; do not mix modes. Omit all for every geocoded job. Longitude comes first in GeoJSON. Current radius search is intended for ordinary local areas; polar/dateline behavior needs further work.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "200",
+      "successDescription": "Find jobs near a location or inside a map area completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/GeoFeatureCollection"
+      },
+      "example": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                -122.4194,
+                37.7749
+              ]
+            },
+            "properties": {
+              "id": 1,
+              "title": "Backend Engineer",
+              "location": "San Francisco",
+              "category": "Technology",
+              "status": "OPEN",
+              "employmentType": "Full-time",
+              "minSalary": 90000,
+              "maxSalary": 130000,
+              "companyId": 1
+            }
+          }
+        ]
+      },
+      "empty": {
+        "type": "FeatureCollection",
+        "features": []
+      }
+    },
+    "GET /api/v1/companies": {
+      "summary": "List companies",
+      "description": "Use case: List companies.\n\nConsumers: company profile screens.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Returns the full unpaginated collection. No mutation.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "200",
+      "successDescription": "List companies completed",
+      "errors": {
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Company"
+        }
+      },
+      "example": [
+        {
+          "id": 1,
+          "userId": 2,
+          "companyName": "Example Technologies",
+          "industry": "Technology",
+          "address": "San Francisco",
+          "approved": false
+        }
+      ],
+      "empty": []
+    },
+    "GET /api/v1/companies/{id}": {
+      "summary": "Read a company profile",
+      "description": "Use case: Read a company profile.\n\nConsumers: company profile screens.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Use the profile ID; it differs from the associated user ID. No mutation.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "200",
+      "successDescription": "Read a company profile completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Company not found with ID: 1. Please verify the company ID."
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Company"
+      },
+      "example": {
+        "id": 1,
+        "userId": 2,
+        "companyName": "Example Technologies",
+        "industry": "Technology",
+        "address": "San Francisco",
+        "approved": false
+      }
+    },
+    "GET /api/v1/companies/user/{userId}": {
+      "summary": "Find a company profile by user ID",
+      "description": "Use case: Find a company profile by user ID.\n\nConsumers: company profile screens.\n\nRoles and ownership: The account owner (CANDIDATE or COMPANY), or ADMIN.\n\nWorkflow and side effects: Use the authenticated userId returned during login. A matching profile must already exist. Company profile lookup by user ID also requires authentication.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Find a company profile by user ID completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "No company profile found for user ID: 1. Please create a company profile first."
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Company"
+      },
+      "example": {
+        "id": 1,
+        "userId": 2,
+        "companyName": "Example Technologies",
+        "industry": "Technology",
+        "address": "San Francisco",
+        "approved": false
+      }
+    },
+    "POST /api/v1/companies": {
+      "summary": "Create a company profile",
+      "description": "Use case: Create a company profile.\n\nConsumers: company profile screens.\n\nRoles and ownership: COMPANY or ADMIN.\n\nWorkflow and side effects: Register the matching account role first. userId defaults to the caller; ADMIN supplies a matching-role userId. One profile per user. IDs are server-generated. COMPANY creation forces approved=false.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "201",
+      "successDescription": "Create a company profile completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "User not found"
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Company"
+      },
+      "example": {
+        "id": 1,
+        "userId": 2,
+        "companyName": "Example Technologies",
+        "industry": "Technology",
+        "address": "San Francisco",
+        "approved": false
+      },
+      "request": {
+        "companyName": "Example Technologies",
+        "industry": "Technology",
+        "address": "San Francisco",
+        "approved": false
+      }
+    },
+    "PUT /api/v1/companies/{id}": {
+      "summary": "Update a company profile",
+      "description": "Use case: Update a company profile.\n\nConsumers: company profile screens.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Profile must exist. Name is required (2–255 characters); optional text fields are replaced. userId cannot be reassigned. Only ADMIN can change approved.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Update a company profile completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Company not found with ID: 1. Please verify the company ID."
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Company"
+      },
+      "example": {
+        "id": 1,
+        "userId": 2,
+        "companyName": "Example Technologies",
+        "industry": "Technology",
+        "address": "San Francisco",
+        "approved": false
+      },
+      "request": {
+        "companyName": "Example Technologies",
+        "industry": "Technology",
+        "address": "San Francisco",
+        "approved": false
+      }
+    },
+    "DELETE /api/v1/companies/{id}": {
+      "summary": "Delete a company profile",
+      "description": "Use case: Delete a company profile.\n\nConsumers: company profile screens.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Permanently deletes the profile. Related-record cleanup is not guaranteed by the current scalar-ID model.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "204",
+      "successDescription": "Completed with no response body",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Company not found with ID: 1. Please verify the company ID."
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      }
+    },
+    "GET /api/v1/candidates": {
+      "summary": "List candidates",
+      "description": "Use case: List candidates.\n\nConsumers: candidate profile screens.\n\nRoles and ownership: ADMIN only.\n\nWorkflow and side effects: Returns the full unpaginated collection. No mutation.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "List candidates completed",
+      "errors": {
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Candidate"
+        }
+      },
+      "example": [
+        {
+          "id": 1,
+          "userId": 3,
+          "fullName": "Alex Morgan",
+          "phone": "9876543210",
+          "location": "San Francisco",
+          "experience": "3 years in backend development"
+        }
+      ],
+      "empty": []
+    },
+    "GET /api/v1/candidates/{id}": {
+      "summary": "Read a candidate profile",
+      "description": "Use case: Read a candidate profile.\n\nConsumers: candidate profile screens.\n\nRoles and ownership: Owning CANDIDATE, COMPANY with an application from this candidate to one of its jobs, or ADMIN.\n\nWorkflow and side effects: Use the profile ID; it differs from the associated user ID. No mutation.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Read a candidate profile completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Candidate not found with ID: 1. Please verify the candidate ID."
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Candidate"
+      },
+      "example": {
+        "id": 1,
+        "userId": 3,
+        "fullName": "Alex Morgan",
+        "phone": "9876543210",
+        "location": "San Francisco",
+        "experience": "3 years in backend development"
+      }
+    },
+    "GET /api/v1/candidates/user/{userId}": {
+      "summary": "Find a candidate profile by user ID",
+      "description": "Use case: Find a candidate profile by user ID.\n\nConsumers: candidate profile screens.\n\nRoles and ownership: The account owner (CANDIDATE or COMPANY), or ADMIN.\n\nWorkflow and side effects: Use the authenticated userId returned during login. A matching profile must already exist. Company profile lookup by user ID also requires authentication.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Find a candidate profile by user ID completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "No candidate profile found for user ID: 1. Please create a candidate profile first."
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Candidate"
+      },
+      "example": {
+        "id": 1,
+        "userId": 3,
+        "fullName": "Alex Morgan",
+        "phone": "9876543210",
+        "location": "San Francisco",
+        "experience": "3 years in backend development"
+      }
+    },
+    "POST /api/v1/candidates": {
+      "summary": "Create a candidate profile",
+      "description": "Use case: Create a candidate profile.\n\nConsumers: candidate profile screens.\n\nRoles and ownership: CANDIDATE or ADMIN.\n\nWorkflow and side effects: Register the matching account role first. userId defaults to the caller; ADMIN supplies a matching-role userId. One profile per user. IDs are server-generated. COMPANY creation forces approved=false.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Create a candidate profile completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "User not found"
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Candidate"
+      },
+      "example": {
+        "id": 1,
+        "userId": 3,
+        "fullName": "Alex Morgan",
+        "phone": "9876543210",
+        "location": "San Francisco",
+        "experience": "3 years in backend development"
+      },
+      "request": {
+        "fullName": "Alex Morgan",
+        "phone": "9876543210",
+        "location": "San Francisco",
+        "experience": "3 years in backend development"
+      }
+    },
+    "PUT /api/v1/candidates/{id}": {
+      "summary": "Update a candidate profile",
+      "description": "Use case: Update a candidate profile.\n\nConsumers: candidate profile screens.\n\nRoles and ownership: Owning CANDIDATE or ADMIN.\n\nWorkflow and side effects: Profile must exist. Name is required (2–255 characters); optional text fields are replaced. userId cannot be reassigned. Nonempty phone must contain at least 10 digits.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Update a candidate profile completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Candidate not found with ID: 1. Please verify the candidate ID."
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Candidate"
+      },
+      "example": {
+        "id": 1,
+        "userId": 3,
+        "fullName": "Alex Morgan",
+        "phone": "9876543210",
+        "location": "San Francisco",
+        "experience": "3 years in backend development"
+      },
+      "request": {
+        "fullName": "Alex Morgan",
+        "phone": "9876543210",
+        "location": "San Francisco",
+        "experience": "3 years in backend development"
+      }
+    },
+    "DELETE /api/v1/candidates/{id}": {
+      "summary": "Delete a candidate profile",
+      "description": "Use case: Delete a candidate profile.\n\nConsumers: candidate profile screens.\n\nRoles and ownership: Owning CANDIDATE or ADMIN.\n\nWorkflow and side effects: Permanently deletes the profile. Related-record cleanup is not guaranteed by the current scalar-ID model.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Completed with no response body",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Candidate not found with ID: 1. Please verify the candidate ID."
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      }
+    },
+    "GET /api/v1/users": {
+      "summary": "List user accounts",
+      "description": "Use case: List user accounts.\n\nConsumers: administration console.\n\nRoles and ownership: ADMIN only.\n\nWorkflow and side effects: Returns an unpaginated list. Passwords are never returned.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "List user accounts completed",
+      "errors": {
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/UserResponseDto"
+        }
+      },
+      "example": [
+        {
+          "id": 3,
+          "email": "alex@example.com",
+          "role": "CANDIDATE",
+          "createdAt": "2026-11-25T10:00:00"
+        }
+      ],
+      "empty": []
+    },
+    "GET /api/v1/users/{id}": {
+      "summary": "Read a user account",
+      "description": "Use case: Read a user account.\n\nConsumers: account settings screens.\n\nRoles and ownership: The account owner (CANDIDATE or COMPANY), or ADMIN.\n\nWorkflow and side effects: Read the account identified by userId. Passwords are never returned.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Read a user account completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "User not found with ID: 1. Please check the user ID and try again."
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/UserResponseDto"
+      },
+      "example": {
+        "id": 3,
+        "email": "alex@example.com",
+        "role": "CANDIDATE",
+        "createdAt": "2026-11-25T10:00:00"
+      }
+    },
+    "POST /api/v1/users": {
+      "summary": "Create an account administratively",
+      "description": "Use case: Create an account administratively.\n\nConsumers: administration console.\n\nRoles and ownership: ADMIN only.\n\nWorkflow and side effects: Creates a CANDIDATE, COMPANY, or ADMIN user. Password is 6–72 characters and is hashed before storage. Does not issue a token or create a profile.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "201",
+      "successDescription": "Create an account administratively completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "409": {
+          "trigger": "A duplicate account or candidate-job application already exists.",
+          "examples": {
+            "DUPLICATE_RESOURCE": "A matching record already exists"
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/UserResponseDto"
+      },
+      "example": {
+        "id": 3,
+        "email": "alex@example.com",
+        "role": "CANDIDATE",
+        "createdAt": "2026-11-25T10:00:00"
+      },
+      "request": {
+        "email": "alex@example.com",
+        "password": "password123",
+        "role": "CANDIDATE"
+      }
+    },
+    "PUT /api/v1/users/{id}": {
+      "summary": "Update account settings",
+      "description": "Use case: Update account settings.\n\nConsumers: account settings screens.\n\nRoles and ownership: The account owner (CANDIDATE or COMPANY), or ADMIN.\n\nWorkflow and side effects: Email is required. Omit password to preserve it; supplied password must be 6–72 characters. Only ADMIN may change role. Password is never returned.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Update account settings completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "User not found with ID: 1. Please check the user ID and try again."
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/UserResponseDto"
+      },
+      "example": {
+        "id": 3,
+        "email": "alex@example.com",
+        "role": "CANDIDATE",
+        "createdAt": "2026-11-25T10:00:00"
+      },
+      "request": {
+        "email": "alex@example.com",
+        "password": "new-password123"
+      }
+    },
+    "DELETE /api/v1/users/{id}": {
+      "summary": "Delete a user account",
+      "description": "Use case: Delete a user account.\n\nConsumers: administration console.\n\nRoles and ownership: ADMIN only.\n\nWorkflow and side effects: Permanently deletes the account. Related-record cleanup is not guaranteed by the current scalar-ID model.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "204",
+      "successDescription": "Completed with no response body",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "User not found with ID: 1. Please check the user ID and try again."
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      }
+    },
+    "GET /api/v1/applications": {
+      "summary": "List all applications",
+      "description": "Use case: List all applications.\n\nConsumers: candidate tracking and recruiter review screens.\n\nRoles and ownership: ADMIN only.\n\nWorkflow and side effects: Use profile/job/application IDs from earlier workflow steps. Lists are unpaginated; an empty authorized collection returns []. No mutation.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "List all applications completed",
+      "errors": {
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Application"
+        }
+      },
+      "example": [
+        {
+          "id": 1,
+          "candidateId": 1,
+          "jobId": 1,
+          "status": "SUBMITTED",
+          "appliedAt": "2026-11-25T10:00:00"
+        }
+      ],
+      "empty": []
+    },
+    "GET /api/v1/applications/{id}": {
+      "summary": "Read an application",
+      "description": "Use case: Read an application.\n\nConsumers: candidate tracking and recruiter review screens.\n\nRoles and ownership: Application-owning CANDIDATE, COMPANY owning the associated job, or ADMIN.\n\nWorkflow and side effects: Use profile/job/application IDs from earlier workflow steps. Lists are unpaginated; an empty authorized collection returns []. No mutation.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Read an application completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Application not found"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Application"
+      },
+      "example": {
+        "id": 1,
+        "candidateId": 1,
+        "jobId": 1,
+        "status": "SUBMITTED",
+        "appliedAt": "2026-11-25T10:00:00"
+      }
+    },
+    "GET /api/v1/applications/candidate/{candidateId}": {
+      "summary": "List a candidate’s applications",
+      "description": "Use case: List a candidate’s applications.\n\nConsumers: candidate tracking and recruiter review screens.\n\nRoles and ownership: Owning CANDIDATE or ADMIN.\n\nWorkflow and side effects: Use profile/job/application IDs from earlier workflow steps. Lists are unpaginated; an empty authorized collection returns []. No mutation.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "List a candidate’s applications completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Application not found"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Application"
+        }
+      },
+      "example": [
+        {
+          "id": 1,
+          "candidateId": 1,
+          "jobId": 1,
+          "status": "SUBMITTED",
+          "appliedAt": "2026-11-25T10:00:00"
+        }
+      ],
+      "empty": []
+    },
+    "GET /api/v1/applications/job/{jobId}": {
+      "summary": "List applications for a job",
+      "description": "Use case: List applications for a job.\n\nConsumers: candidate tracking and recruiter review screens.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Use profile/job/application IDs from earlier workflow steps. Lists are unpaginated; an empty authorized collection returns []. No mutation.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "List applications for a job completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Application not found"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Application"
+        }
+      },
+      "example": [
+        {
+          "id": 1,
+          "candidateId": 1,
+          "jobId": 1,
+          "status": "SUBMITTED",
+          "appliedAt": "2026-11-25T10:00:00"
+        }
+      ],
+      "empty": []
+    },
+    "POST /api/v1/applications": {
+      "summary": "Apply for a job",
+      "description": "Use case: Apply for a job.\n\nConsumers: candidate application form.\n\nRoles and ownership: CANDIDATE only. candidateId is derived from the token and cannot identify another candidate.\n\nWorkflow and side effects: Create a candidate profile and discover an existing job first. Creates one application per candidate/job pair. status and appliedAt are assigned by the server; submitted IDs are rejected. Notification email is attempted asynchronously when configured.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "201",
+      "successDescription": "Apply for a job completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Create a candidate profile before applying"
+          }
+        },
+        "409": {
+          "trigger": "A duplicate account or candidate-job application already exists.",
+          "examples": {
+            "DUPLICATE_RESOURCE": "A matching record already exists"
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Application"
+      },
+      "example": {
+        "id": 1,
+        "candidateId": 1,
+        "jobId": 1,
+        "status": "SUBMITTED",
+        "appliedAt": "2026-11-25T10:00:00"
+      },
+      "request": {
+        "jobId": 1
+      }
+    },
+    "PUT /api/v1/applications/{id}/status": {
+      "summary": "Review an application",
+      "description": "Use case: Review an application.\n\nConsumers: recruiter review screens.\n\nRoles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.\n\nWorkflow and side effects: Supply a JSON string enum, not an object. Supported: SUBMITTED, REVIEWED, SHORTLISTED, REJECTED, HIRED. Updates status and attempts a notification email on change. Transition ordering is not enforced yet.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Review an application completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Application not found"
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Application"
+      },
+      "example": {
+        "id": 1,
+        "candidateId": 1,
+        "jobId": 1,
+        "status": "SHORTLISTED",
+        "appliedAt": "2026-11-25T10:00:00"
+      },
+      "request": "SHORTLISTED"
+    },
+    "DELETE /api/v1/applications/{id}": {
+      "summary": "Withdraw an application",
+      "description": "Use case: Withdraw an application.\n\nConsumers: candidate application tracking.\n\nRoles and ownership: Owning CANDIDATE or ADMIN.\n\nWorkflow and side effects: Deletes the application record; this endpoint does not set a WITHDRAWN status.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "204",
+      "successDescription": "Completed with no response body",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Application not found"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      }
+    },
+    "GET /api/v1/resumes": {
+      "summary": "List all resume metadata",
+      "description": "Use case: List all resume metadata.\n\nConsumers: candidate document screens and recruiter applicant review.\n\nRoles and ownership: ADMIN only.\n\nWorkflow and side effects: Metadata only. filePath is an opaque storage reference; download bytes through the authenticated download endpoint. An absent latest resume returns 404.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "List all resume metadata completed",
+      "errors": {
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Resume"
+        }
+      },
+      "example": [
+        {
+          "id": 1,
+          "candidateId": 1,
+          "filePath": "/static/resumes/resume_1_example.pdf",
+          "uploadedAt": "2026-11-25T10:00:00"
+        }
+      ],
+      "empty": []
+    },
+    "GET /api/v1/resumes/{id}": {
+      "summary": "Read resume metadata",
+      "description": "Use case: Read resume metadata.\n\nConsumers: candidate document screens and recruiter applicant review.\n\nRoles and ownership: Owning CANDIDATE, COMPANY with an application from this candidate to one of its jobs, or ADMIN.\n\nWorkflow and side effects: Metadata only. filePath is an opaque storage reference; download bytes through the authenticated download endpoint. An absent latest resume returns 404.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Read resume metadata completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Resume not found with id: 1"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Resume"
+      },
+      "example": {
+        "id": 1,
+        "candidateId": 1,
+        "filePath": "/static/resumes/resume_1_example.pdf",
+        "uploadedAt": "2026-11-25T10:00:00"
+      }
+    },
+    "GET /api/v1/resumes/candidate/{candidateId}": {
+      "summary": "List a candidate’s resumes",
+      "description": "Use case: List a candidate’s resumes.\n\nConsumers: candidate document screens and recruiter applicant review.\n\nRoles and ownership: Owning CANDIDATE, COMPANY with an application from this candidate to one of its jobs, or ADMIN.\n\nWorkflow and side effects: Metadata only. filePath is an opaque storage reference; download bytes through the authenticated download endpoint. An absent latest resume returns 404.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "List a candidate’s resumes completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Resume not found with id: 1"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Resume"
+        }
+      },
+      "example": [
+        {
+          "id": 1,
+          "candidateId": 1,
+          "filePath": "/static/resumes/resume_1_example.pdf",
+          "uploadedAt": "2026-11-25T10:00:00"
+        }
+      ],
+      "empty": []
+    },
+    "GET /api/v1/resumes/candidate/{candidateId}/latest": {
+      "summary": "Read the latest resume metadata",
+      "description": "Use case: Read the latest resume metadata.\n\nConsumers: candidate document screens and recruiter applicant review.\n\nRoles and ownership: Owning CANDIDATE, COMPANY with an application from this candidate to one of its jobs, or ADMIN.\n\nWorkflow and side effects: Metadata only. filePath is an opaque storage reference; download bytes through the authenticated download endpoint. An absent latest resume returns 404.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Read the latest resume metadata completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "No resume found for candidate with id: 1"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/Resume"
+      },
+      "example": {
+        "id": 1,
+        "candidateId": 1,
+        "filePath": "/static/resumes/resume_1_example.pdf",
+        "uploadedAt": "2026-11-25T10:00:00"
+      }
+    },
+    "POST /api/v1/resumes/upload": {
+      "summary": "Upload a candidate resume",
+      "description": "Use case: Upload a candidate resume.\n\nConsumers: candidate document upload form.\n\nRoles and ownership: Owning CANDIDATE or ADMIN.\n\nWorkflow and side effects: Requires an existing candidate profile. Send multipart/form-data with candidateId and file. Nonempty PDF/DOC/DOCX filename extension; at most 5 MiB per file and 6 MiB for the entire request. Extension validation does not inspect document contents. Stores bytes and metadata; download using the returned resume.id.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "201",
+      "successDescription": "Upload a candidate resume completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Resume not found with id: 1"
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        },
+        "413": {
+          "trigger": "File exceeds 5 MiB or multipart request exceeds 6 MiB.",
+          "examples": {
+            "PAYLOAD_TOO_LARGE": "Resume file must not exceed 5 MiB; multipart request must not exceed 6 MiB"
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/ResumeUploadResponse"
+      },
+      "example": {
+        "message": "Resume uploaded successfully",
+        "resume": {
+          "id": 1,
+          "candidateId": 1,
+          "filePath": "/static/resumes/resume_1_example.pdf",
+          "uploadedAt": "2026-11-25T10:00:00"
+        },
+        "success": true
+      }
+    },
+    "GET /api/v1/resumes/download/{id}": {
+      "summary": "Download resume bytes",
+      "description": "Use case: Download resume bytes.\n\nConsumers: candidate document screens and recruiter applicant review.\n\nRoles and ownership: Owning CANDIDATE, COMPANY with an application from this candidate to one of its jobs, or ADMIN.\n\nWorkflow and side effects: Use the resume ID, not candidate ID. Returns the original stored bytes as an attachment with a generated filename. Missing database record or stored file returns JSON 404; successful response is binary.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Download resume bytes completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Resume file was not found"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "string",
+        "format": "binary"
+      },
+      "mediaType": "application/octet-stream"
+    },
+    "DELETE /api/v1/resumes/{id}": {
+      "summary": "Delete a resume",
+      "description": "Use case: Delete a resume.\n\nConsumers: candidate document management.\n\nRoles and ownership: Owning CANDIDATE or ADMIN.\n\nWorkflow and side effects: Removes the stored file and metadata. Missing metadata returns 404; already absent bytes do not prevent metadata cleanup. Storage failure returns 500.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "200",
+      "successDescription": "Delete a resume completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Resume not found with id: 1"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/ResumeDeleteResponse"
+      },
+      "example": {
+        "message": "Resume deleted successfully",
+        "success": true
+      }
+    },
+    "GET /api/v1/slots": {
+      "summary": "Browse interview slots",
+      "description": "Use case: Browse interview slots.\n\nConsumers: calendar and interview booking screens.\n\nRoles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.\n\nWorkflow and side effects: Supply both starts_at and ends_at or neither. Uses ISO local date-times; timezone conversion is not implemented. Returns overlapping slots, unpaginated. candidateId is null unless caller is that candidate, the job-owning COMPANY, or ADMIN.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": true,
+      "status": "200",
+      "successDescription": "Browse interview slots completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/InterviewSlot"
+        }
+      },
+      "example": [
+        {
+          "id": 1,
+          "jobId": 1,
+          "candidateId": null,
+          "startsAt": "2027-01-10T10:00:00",
+          "endsAt": "2027-01-10T10:30:00",
+          "status": "SCHEDULED",
+          "createdAt": "2026-11-25T10:00:00"
+        }
+      ],
+      "empty": []
+    },
+    "POST /api/v1/slots": {
+      "summary": "Schedule an interview",
+      "description": "Use case: Schedule an interview.\n\nConsumers: calendar and interview booking screens.\n\nRoles and ownership: CANDIDATE books for themselves; COMPANY schedules only its jobs; ADMIN may schedule any job.\n\nWorkflow and side effects: Job and any candidate must exist. Candidate callers need a profile; candidateId defaults to their profile. Company/admin may omit candidateId for an unassigned slot. endsAt must follow startsAt. Same-job overlapping slots return 409. This does not require an existing job application.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "201",
+      "successDescription": "Schedule an interview completed",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Job not found"
+          }
+        },
+        "409": {
+          "trigger": "The interval overlaps another slot for the same job.",
+          "examples": {
+            "SLOT_CONFLICT": "Interview slot conflicts with an existing slot for job 1 between 2027-01-10T10:00 and 2027-01-10T10:30"
+          }
+        },
+        "415": {
+          "trigger": "Request Content-Type does not match the operation.",
+          "examples": {
+            "UNSUPPORTED_MEDIA_TYPE": "Unsupported request Content-Type"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      },
+      "schema": {
+        "$ref": "#/components/schemas/InterviewSlot"
+      },
+      "example": {
+        "id": 1,
+        "jobId": 1,
+        "candidateId": 1,
+        "startsAt": "2027-01-10T10:00:00",
+        "endsAt": "2027-01-10T10:30:00",
+        "status": "SCHEDULED",
+        "createdAt": "2026-11-25T10:00:00"
+      },
+      "request": {
+        "jobId": 1,
+        "startsAt": "2027-01-10T10:00:00",
+        "endsAt": "2027-01-10T10:30:00"
+      }
+    },
+    "DELETE /api/v1/slots/{id}": {
+      "summary": "Cancel an interview slot",
+      "description": "Use case: Cancel an interview slot.\n\nConsumers: calendar screens.\n\nRoles and ownership: Assigned CANDIDATE, COMPANY owning the job, or ADMIN.\n\nWorkflow and side effects: Deletes the existing slot record. Does not preserve a cancellation event.\n\nRate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.",
+      "public": false,
+      "status": "204",
+      "successDescription": "Completed with no response body",
+      "errors": {
+        "400": {
+          "trigger": "Malformed input, missing required fields, invalid type, or a documented validation constraint failed.",
+          "examples": {
+            "INVALID_REQUEST": "Malformed JSON or invalid field type or enum value",
+            "VALIDATION_ERROR": "Input validation failed for one or more fields",
+            "DATA_INTEGRITY_ERROR": "Request conflicts with database constraints"
+          }
+        },
+        "401": {
+          "trigger": "Missing, expired, or invalid bearer token.",
+          "examples": {
+            "UNAUTHORIZED": "Authentication required"
+          }
+        },
+        "403": {
+          "trigger": "Authenticated caller lacks the required role or ownership. Some ownership checks return 403 for unknown IDs.",
+          "examples": {
+            "FORBIDDEN": "You don't have permission to access this resource"
+          }
+        },
+        "404": {
+          "trigger": "Requested record, related profile, job, or stored resume file does not exist after permission checks.",
+          "examples": {
+            "RESOURCE_NOT_FOUND": "Interview slot not found"
+          }
+        },
+        "429": {
+          "trigger": "The client IP exhausted its configured request quota for this window.",
+          "examples": {
+            "RATE_LIMITED": "Too many requests. Limit: 60 per minute."
+          }
+        },
+        "500": {
+          "trigger": "Unexpected server or storage failure. Internal exception details are not exposed.",
+          "examples": {
+            "INTERNAL_ERROR": "An unexpected error occurred. Please try again later."
+          }
+        }
+      }
+    }
+  }
+}

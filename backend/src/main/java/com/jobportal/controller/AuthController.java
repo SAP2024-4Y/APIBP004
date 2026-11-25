@@ -41,12 +41,13 @@ public class AuthController {
                     schema = @Schema(implementation = ErrorResponse.class),
                     examples = @ExampleObject(name = "adminRegistrationRejected", value = """
                             {
-                              "timestamp": "2026-11-25T10:00:00",
+                              "timestamp": "2026-11-25T10:00:00Z",
                               "status": 400,
-                              "error": "Validation Error",
+                              "code": "VALIDATION_ERROR",
+                              "error": "Bad Request",
                               "message": "Public registration only supports CANDIDATE and COMPANY roles",
                               "path": "/api/v1/auth/register",
-                              "details": null
+                              "details": []
                             }
                             """)))
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -67,10 +68,10 @@ public class AuthController {
      */
     @PostMapping("/token")
     @Operation(summary = "Issue token for demo account", description = "Accepts {username, password} or {email, password}. Demo: username=demo, password=demo-password")
-    public ResponseEntity<?> token(@RequestBody Map<String, String> body) {
-        String username = body.get("username");
-        String email = body.get("email");
-        String password = body.get("password");
+    public ResponseEntity<?> token(@Valid @RequestBody com.jobportal.dto.TokenRequest body) {
+        String username = body.getUsername();
+        String email = body.getEmail();
+        String password = body.getPassword();
 
         // Resolve email: accept either username or email field
         String resolvedEmail;
@@ -79,7 +80,7 @@ public class AuthController {
         } else if (email != null && !email.isBlank()) {
             resolvedEmail = email;
         } else {
-            return ResponseEntity.badRequest().body(Map.of("error", "username or email required"));
+            throw new com.jobportal.exception.ValidationException("username or email required");
         }
 
         LoginRequest loginRequest = new LoginRequest();

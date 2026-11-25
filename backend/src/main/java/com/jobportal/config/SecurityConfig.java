@@ -28,7 +28,21 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     @Autowired
+    private com.jobportal.exception.ApiErrorWriter apiErrors;
+
+    @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Autowired
+    private com.jobportal.filter.RateLimitFilter rateLimitFilter;
+
+    // Run inside Spring Security, after CORS and before authorization, exactly once.
+    @Bean
+    public org.springframework.boot.web.servlet.FilterRegistrationBean<com.jobportal.filter.RateLimitFilter> rateLimitRegistration() {
+        var registration = new org.springframework.boot.web.servlet.FilterRegistrationBean<>(rateLimitFilter);
+        registration.setEnabled(false);
+        return registration;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -38,10 +52,11 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((request, response, e) -> {
-                    response.setContentType("application/json");
-                    response.setStatus(401);
-                    response.getWriter().write("{\"status\":401,\"error\":\"UNAUTHORIZED\",\"message\":\"Authentication required\"}");
+                    apiErrors.write(request, response, org.springframework.http.HttpStatus.UNAUTHORIZED,
+                            "UNAUTHORIZED", "Authentication required");
                 })
+                .accessDeniedHandler((request, response, e) -> apiErrors.write(request, response,
+                        org.springframework.http.HttpStatus.FORBIDDEN, "FORBIDDEN", "You don't have permission to access this resource"))
             )
             .authorizeHttpRequests(authz -> authz
                 // Health, docs, graphql
@@ -66,7 +81,8 @@ public class SecurityConfig {
                 // Everything else requires auth
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(rateLimitFilter, org.springframework.web.filter.CorsFilter.class);
 
         return http.build();
     }
@@ -78,6 +94,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(Arrays.asList("RateLimit-Limit", "RateLimit-Remaining", "RateLimit-Reset", "Retry-After", "Content-Disposition"));
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

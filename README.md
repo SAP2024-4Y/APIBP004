@@ -203,7 +203,7 @@ Client
   │
   ├── REST    → /api/v1/**  (Spring MVC controllers)
   │                │
-  └── GraphQL → /graphql   (graphql-java-kickstart resolvers)
+  └── GraphQL → /graphql/query (graphql-java-kickstart resolvers)
                    │
             Service Layer (JobService, CompanyService, etc.)
                    │
@@ -211,7 +211,7 @@ Client
 ```
 
 See [`docs/ADR.md`](docs/ADR.md) for the full Architecture Decision Record and
-[`docs/openapi.yaml`](docs/openapi.yaml) for the complete OpenAPI 3.1 specification.
+[`docs/openapi.yaml`](docs/openapi.yaml) for the generated OpenAPI 3.0 contract. See [API contracts and manual verification](docs/api-contracts.md) for the documentation source, workflow, validation rules, and test commands.
 
 ---
 
@@ -225,7 +225,8 @@ REST and GraphQL share role and resource-ownership checks. See [the access matri
 |----------|--------|------|-------------|
 | `/health` | GET | No | Health check |
 | `/docs` | GET | No | Swagger UI |
-| `/graphql` | GET/POST | No (IDE) / Token for mutations | GraphQL Playground + API |
+| `/graphql` | GET | No | GraphQL Playground |
+| `/graphql/query` | POST | Public discovery; role/ownership for protected fields and writes | GraphQL API |
 | `/api/v1/auth/token` | POST | No | Issue JWT token |
 | `/api/v1/auth/login` | POST | No | Login with email |
 | `/api/v1/auth/register` | POST | No | Register account |

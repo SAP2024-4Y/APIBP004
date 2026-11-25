@@ -19,14 +19,20 @@ Course: API Based Products
 ```bash
 git clone https://github.com/<course-org>/APIBP004
 cd APIBP004
-docker compose up
+docker compose up --build
 # Server:        http://localhost:8080
 # REST docs:     http://localhost:8080/docs
 # GraphQL IDE:   http://localhost:8080/graphql
 # Health check:  http://localhost:8080/health
 ```
 
-The service seeds **25+ job postings** with geospatial coordinates and interview slots automatically on first boot. No manual migration or seed commands are needed.
+Compose enables a **25-job demo dataset** with five companies, five candidates, ten applications, five interview slots, and five sample PDF resumes. Flyway applies the maintained schema; restarting preserves data. Bulk mode adds **1,000 jobs, 100 companies, 500 candidates, 2,000 applications, 500 slots, and 500 resumes**:
+
+~~~sh
+docker compose -f docker-compose.yml -f compose.bulk.yml up --build
+~~~
+
+See [database setup, existing-database handling, counts, and accounts](docs/database-and-demo-data.md) and the [entity diagram/data dictionary](docs/entities.md). Seeding defaults to off outside Compose; set APP_SEED_MODE=demo or bulk explicitly for local runs.
 
 ---
 

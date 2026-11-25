@@ -68,7 +68,7 @@ Resolver errors return HTTP 200 with the GraphQL error envelope. GraphQL nullabi
 
 ## Manual verification
 
-1. Build and start the current branch with `docker compose up --build`. The development Compose configuration uses `create-drop`; use disposable data.
+1. Build and start the current branch with `docker compose up --build`. Compose uses Flyway and preserves data across restarts. For an existing unversioned database, follow the [database review setup](database-and-demo-data.md).
 2. Open `/docs` and obtain two COMPANY tokens through `/api/v1/auth/login`: `hr@techcorp.com` and `careers@innovatelab.com`, both with password `password123`. Record each login response's `userId`.
 3. For each account, find its company through `/api/v1/companies/user/{userId}`, then its jobs through `/api/v1/jobs/company/{companyId}`. Use IDs returned by the API.
 4. With the first company's token, update one of its jobs using a valid title and description: expect 200. Submit the same update against the second company's job: expect 403 and unchanged stored data.

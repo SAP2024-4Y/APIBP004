@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "spring.datasource.url=jdbc:h2:mem:job-controller;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
     "spring.datasource.driver-class-name=org.h2.Driver",
     "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
-    "spring.jpa.hibernate.ddl-auto=create-drop", "spring.jpa.show-sql=false",
+    "spring.jpa.hibernate.ddl-auto=validate", "spring.jpa.show-sql=false",
     "logging.level.org.hibernate.SQL=OFF"
 })
 @AutoConfigureMockMvc

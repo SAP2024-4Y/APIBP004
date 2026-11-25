@@ -32,7 +32,7 @@ import static org.mockito.Mockito.doAnswer;
         "spring.datasource.url=jdbc:h2:mem:authorization;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
         "spring.datasource.driver-class-name=org.h2.Driver",
         "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
-        "spring.jpa.hibernate.ddl-auto=create-drop", "spring.jpa.show-sql=false",
+        "spring.jpa.hibernate.ddl-auto=validate", "spring.jpa.show-sql=false",
         "logging.level.org.hibernate.SQL=OFF", "app.email.enabled=false"
 })
 class ResourceAuthorizationIntegrationTest {
@@ -138,6 +138,12 @@ class ResourceAuthorizationIntegrationTest {
         assertStatus(201, created);
         assertFalse(json.readTree(created.getBody()).path("approved").asBoolean());
         assertEquals(newcomer.getId().intValue(), json.readTree(created.getBody()).path("userId").asInt());
+        ResponseEntity<String> blocked = request(HttpMethod.DELETE, "/api/v1/companies/" + otherCompany.getId(), admin, null);
+        assertStatus(400, blocked);
+        assertEquals("DATA_INTEGRITY_ERROR", json.readTree(blocked.getBody()).path("code").asText());
+        assertTrue(companies.existsById(otherCompany.getId()));
+        assertTrue(jobs.existsById(otherJob.getId()));
+        assertStatus(204, request(HttpMethod.DELETE, "/api/v1/jobs/" + otherJob.getId(), admin, null));
         assertStatus(204, request(HttpMethod.DELETE, "/api/v1/companies/" + otherCompany.getId(), admin, null));
     }
 
@@ -253,6 +259,10 @@ class ResourceAuthorizationIntegrationTest {
         assertFalse(result.has("errors"), result.toPrettyString());
         assertEquals("Changed", result.path("data").path("updateJob").path("title").asText());
         assertEquals("Changed", jobs.findById(job.getId()).orElseThrow().getTitle());
+        JsonNode blocked = graph(companyUser, "mutation { deleteJob(id: \"" + job.getId() + "\") }");
+        assertGraphError("DATA_INTEGRITY_ERROR", blocked);
+        assertEquals("Request conflicts with database constraints", blocked.path("errors").get(0).path("message").asText());
+        assertTrue(jobs.existsById(job.getId()));
         String deletion = "mutation { deleteJob(id: \"" + otherJob.getId() + "\") }";
         assertGraphError("FORBIDDEN", graph(companyUser, deletion));
         assertTrue(jobs.existsById(otherJob.getId()));

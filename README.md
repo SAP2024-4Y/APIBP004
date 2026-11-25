@@ -66,14 +66,16 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/slots
 
 ## REST API examples
 
+See [job discovery and compatibility notes](docs/job-discovery.md) for the consistent page envelope, supported fields, salary units, cursor rules, and a verified 5 km example. Numeric salaries are whole USD per year.
+
 ### List jobs with filtering and cursor pagination
 
 ```bash
 # First page — open Technology jobs, sorted by salary
 curl "http://localhost:8080/api/v1/jobs?status=OPEN&category=Technology&sort=minSalary&order=desc&limit=5"
 
-# Next page — use next_cursor from previous response
-curl "http://localhost:8080/api/v1/jobs?limit=5&after=<next_cursor>"
+# Next page — preserve the SAME filters/sort/order and use next_cursor
+curl "http://localhost:8080/api/v1/jobs?status=OPEN&category=Technology&sort=minSalary&order=desc&limit=5&after=<next_cursor>"
 
 # Filter by salary range
 curl "http://localhost:8080/api/v1/jobs?min_price=80000&max_price=150000"

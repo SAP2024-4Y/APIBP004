@@ -242,6 +242,10 @@ components:
       type: object
     CreateJobDto:
       properties:
+        category:
+          maxLength: 255
+          minLength: 0
+          type: string
         companyId:
           format: int32
           minimum: 1
@@ -251,30 +255,64 @@ components:
           minLength: 20
           type: string
         employmentType:
-          enum:
-          - FULL_TIME
-          - PART_TIME
-          - CONTRACT
-          - INTERNSHIP
-          - FREELANCE
-          - Full-time
-          - Part-time
-          - Contract
-          - Internship
-          - Freelance
-          maxLength: 255
-          minLength: 0
           pattern: FULL_TIME|PART_TIME|CONTRACT|INTERNSHIP|FREELANCE|Full-time|Part-time|Contract|Internship|Freelance
           type: string
+        endsAt:
+          description: Optional job-level local date-time strictly after startsAt.
+          example: 2027-02-01T10:00:00
+          type: string
+        latitude:
+          exclusiveMaximum: false
+          exclusiveMinimum: false
+          format: double
+          maximum: 90
+          minimum: -90
+          type: number
         location:
           maxLength: 255
           minLength: 0
           type: string
+        longitude:
+          exclusiveMaximum: false
+          exclusiveMinimum: false
+          format: double
+          maximum: 180
+          minimum: -180
+          type: number
+        maxSalary:
+          description: "Whole USD per year, inclusive upper salary bound; must be\
+            \ at least minSalary."
+          format: int32
+          minimum: 0
+          type: integer
+        minSalary:
+          description: "Whole USD per year, inclusive lower salary bound; null means\
+            \ unknown."
+          format: int32
+          minimum: 0
+          type: integer
         salaryRange:
+          deprecated: true
+          description: Legacy display text. Numeric bounds are authoritative USD per
+            year and regenerate this text when present.
           maxLength: 255
           minLength: 0
           type: string
         skillsRequired:
+          type: string
+        startsAt:
+          description: Optional job-level local date-time. Supply both time bounds
+            on creation; does not create an interview slot.
+          example: 2027-02-01T09:00:00
+          type: string
+        status:
+          description: Defaults OPEN on creation; omitted/null preserves current value
+            on update.
+          enum:
+          - OPEN
+          - CLOSED
+          - DRAFT
+          pattern: OPEN|CLOSED|DRAFT
           type: string
         title:
           maxLength: 255
@@ -566,17 +604,21 @@ components:
           nullable: true
           type: number
         maxSalary:
-          description: Max salary.
+          description: Inclusive upper salary bound in whole USD per year; null means
+            unknown.
           format: int32
           nullable: true
           type: integer
         minSalary:
-          description: Min salary.
+          description: Inclusive lower salary bound in whole USD per year; null means
+            unknown.
           format: int32
           nullable: true
           type: integer
         salaryRange:
-          description: Legacy free-text salary; numeric bounds are separate fields.
+          description: Deprecated display text generated from numeric bounds when
+            present. Legacy-only text is not parsed or used for salary filters. All
+            salaries are whole USD per year.
           nullable: true
           type: string
         skillsRequired:
@@ -682,17 +724,21 @@ components:
           nullable: true
           type: number
         maxSalary:
-          description: Max salary.
+          description: Inclusive upper salary bound in whole USD per year; null means
+            unknown.
           format: int32
           nullable: true
           type: integer
         minSalary:
-          description: Min salary.
+          description: Inclusive lower salary bound in whole USD per year; null means
+            unknown.
           format: int32
           nullable: true
           type: integer
         salaryRange:
-          description: Legacy free-text salary; numeric bounds are separate fields.
+          description: Deprecated display text generated from numeric bounds when
+            present. Legacy-only text is not parsed or used for salary filters. All
+            salaries are whole USD per year.
           nullable: true
           type: string
         skillsRequired:
@@ -854,40 +900,59 @@ components:
           minLength: 20
           type: string
         employmentType:
-          enum:
-          - FULL_TIME
-          - PART_TIME
-          - CONTRACT
-          - INTERNSHIP
-          - FREELANCE
-          - Full-time
-          - Part-time
-          - Contract
-          - Internship
-          - Freelance
-          maxLength: 255
-          minLength: 0
           pattern: FULL_TIME|PART_TIME|CONTRACT|INTERNSHIP|FREELANCE|Full-time|Part-time|Contract|Internship|Freelance
           type: string
+        endsAt:
+          description: Optional job-level local date-time strictly after startsAt.
+          example: 2027-02-01T10:00:00
+          type: string
+        latitude:
+          exclusiveMaximum: false
+          exclusiveMinimum: false
+          format: double
+          maximum: 90
+          minimum: -90
+          type: number
         location:
           maxLength: 255
           minLength: 0
           type: string
+        longitude:
+          exclusiveMaximum: false
+          exclusiveMinimum: false
+          format: double
+          maximum: 180
+          minimum: -180
+          type: number
         maxSalary:
+          description: "Whole USD per year, inclusive upper salary bound; must be\
+            \ at least minSalary."
           format: int32
           minimum: 0
           type: integer
         minSalary:
+          description: "Whole USD per year, inclusive lower salary bound; null means\
+            \ unknown."
           format: int32
           minimum: 0
           type: integer
         salaryRange:
+          deprecated: true
+          description: Legacy display text. Numeric bounds are authoritative USD per
+            year and regenerate this text when present.
           maxLength: 255
           minLength: 0
           type: string
         skillsRequired:
           type: string
+        startsAt:
+          description: Optional job-level local date-time. Supply both time bounds
+            on creation; does not create an interview slot.
+          example: 2027-02-01T09:00:00
+          type: string
         status:
+          description: Defaults OPEN on creation; omitted/null preserves current value
+            on update.
           enum:
           - OPEN
           - CLOSED
@@ -898,9 +963,6 @@ components:
           maxLength: 255
           minLength: 3
           type: string
-      required:
-      - description
-      - title
       type: object
     UpdateUserDto:
       properties:
@@ -5418,7 +5480,7 @@ paths:
 
         Roles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.
 
-        Workflow and side effects: Normally returns a page envelope. limit is 1–100. next_cursor is null on a final page. Legacy title/location/skills without status/category/salary/after returns a bare array; title takes precedence, then location; skills is currently ignored. Cursor ordering across non-ID sorts is not reliable yet; do not use it for exhaustive exports.
+        Workflow and side effects: Always returns {data, has_more, next_cursor, limit}, including title/location/skills searches. All supplied filters combine with AND. Text filters are case-insensitive literal substrings; status/category are exact. limit is 1–100 (default 20). Sorting defaults to created_at desc; null sort values are last in both directions, with an ID tie-breaker in the same direction. Cursors are versioned and bound to resource, filters, sort, and order; reuse the same query and copy next_cursor. Final-page next_cursor is null. Old ID-only cursors are rejected: restart from page one. Traversal is deterministic for unchanged data, not a snapshot of concurrent edits. Salaries are whole USD per year: min_price requires minSalary >= bound, max_price requires maxSalary <= bound; a missing compared bound does not match. Use the deprecated /search routes only if an array response is still required.
 
         Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
       operationId: getAllJobs
@@ -5441,7 +5503,8 @@ paths:
         required: false
         schema:
           type: string
-      - description: Nonnegative salary bound. Minimum must not exceed maximum.
+      - description: "Inclusive lower requirement: job.minSalary >= min_price, whole\
+          \ USD per year. Unknown minSalary does not match."
         example: 90000
         in: query
         name: min_price
@@ -5450,7 +5513,8 @@ paths:
           format: int32
           minimum: 0
           type: integer
-      - description: Nonnegative salary bound. Minimum must not exceed maximum.
+      - description: "Inclusive upper requirement: job.maxSalary <= max_price, whole\
+          \ USD per year. Unknown maxSalary does not match."
         example: 90000
         in: query
         name: max_price
@@ -5459,14 +5523,26 @@ paths:
           format: int32
           minimum: 0
           type: integer
-      - description: Sort field; unrecognized fields currently fall back to created_at.
-          ID-based continuation does not yet support reliable traversal for every
-          sort.
+      - description: "Sort field with same-direction ID tie-breaker and nulls last.\
+          \ Default created_at. Aliases createdAt, minSalary/min_salary, maxSalary/max_salary\
+          \ are accepted; unknown fields return 400."
         example: created_at
         in: query
         name: sort
         required: false
         schema:
+          default: created_at
+          enum:
+          - id
+          - title
+          - created_at
+          - min_price
+          - max_price
+          - createdAt
+          - minSalary
+          - min_salary
+          - maxSalary
+          - max_salary
           type: string
       - description: Sort direction; default desc.
         example: desc
@@ -5490,30 +5566,32 @@ paths:
           maximum: 100
           minimum: 1
           type: integer
-      - description: Opaque cursor copied from next_cursor. Omit for the first page.
-          Current ordering limitations are described above.
-        example: MQ==
+      - description: "Opaque versioned cursor copied from next_cursor. Omit for page\
+          \ one. Keep the same filters, sort and order; old ID-only cursors are invalid."
+        example: eyJ2ZXJzaW9uIjoxLCJyZXNvdXJjZSI6ImpvYnMiLCJzb3J0IjoiY3JlYXRlZEF0Iiwib3JkZXIiOiJkZXNjIiwiZmlsdGVycyI6IjBhMmM2YTVkOTU3ZjgxYzBjODA5Zjk5ZDEzYmNkMzE2ZDBiNWM1YjdiMDZhZTNhZjY2YWRhZWM4M2NlN2EwMDAiLCJpZCI6MSwidmFsdWUiOiIyMDI2LTExLTI1VDEwOjAwIn0
         in: query
         name: after
         required: false
         schema:
           type: string
-      - description: Legacy case-insensitive title substring; nonblank.
+      - description: "Case-insensitive literal title substring, 1–255 characters;\
+          \ combines with every other supplied filter using AND."
         example: Engineer
         in: query
         name: title
         required: false
         schema:
           type: string
-      - description: Legacy case-insensitive location substring; nonblank.
+      - description: "Case-insensitive literal location substring, 1–255 characters;\
+          \ combines with every other supplied filter using AND."
         example: San Francisco
         in: query
         name: location
         required: false
         schema:
           type: string
-      - description: "Legacy parameter: currently ignored. Triggers the bare-array\
-          \ response when no modern filters are supplied."
+      - description: "Case-insensitive literal skills substring, 1–255 characters;\
+          \ combines with every other supplied filter using AND."
         example: Java
         in: query
         name: skills
@@ -5531,25 +5609,6 @@ paths:
                     has_more: false
                     limit: 20
                     next_cursor: null
-                legacyArray:
-                  value:
-                  - category: Technology
-                    companyId: 1
-                    createdAt: 2026-11-25T10:00:00
-                    description: Build and maintain the recruitment platform APIs.
-                    employmentType: Full-time
-                    endsAt: null
-                    id: 1
-                    latitude: 37.7749
-                    location: San Francisco
-                    longitude: -122.4194
-                    maxSalary: 130000
-                    minSalary: 90000
-                    salaryRange: 90000-130000
-                    skillsRequired: "Java, Spring Boot, PostgreSQL"
-                    startsAt: null
-                    status: OPEN
-                    title: Backend Engineer
                 nextPage:
                   value:
                     data:
@@ -5565,14 +5624,14 @@ paths:
                       longitude: -122.4194
                       maxSalary: 130000
                       minSalary: 90000
-                      salaryRange: 90000-130000
+                      salaryRange: 90000 - 130000
                       skillsRequired: "Java, Spring Boot, PostgreSQL"
                       startsAt: null
                       status: OPEN
                       title: Backend Engineer
                     has_more: true
                     limit: 20
-                    next_cursor: MQ==
+                    next_cursor: eyJ2ZXJzaW9uIjoxLCJyZXNvdXJjZSI6ImpvYnMiLCJzb3J0IjoiY3JlYXRlZEF0Iiwib3JkZXIiOiJkZXNjIiwiZmlsdGVycyI6IjBhMmM2YTVkOTU3ZjgxYzBjODA5Zjk5ZDEzYmNkMzE2ZDBiNWM1YjdiMDZhZTNhZjY2YWRhZWM4M2NlN2EwMDAiLCJpZCI6MSwidmFsdWUiOiIyMDI2LTExLTI1VDEwOjAwIn0
                 success:
                   value:
                     data:
@@ -5588,7 +5647,7 @@ paths:
                       longitude: -122.4194
                       maxSalary: 130000
                       minSalary: 90000
-                      salaryRange: 90000-130000
+                      salaryRange: 90000 - 130000
                       skillsRequired: "Java, Spring Boot, PostgreSQL"
                       startsAt: null
                       status: OPEN
@@ -5597,11 +5656,7 @@ paths:
                     limit: 20
                     next_cursor: null
               schema:
-                oneOf:
-                - $ref: '#/components/schemas/JobPage'
-                - items:
-                    $ref: '#/components/schemas/JobResponseDto'
-                  type: array
+                $ref: '#/components/schemas/JobPage'
           description: Browse and filter job postings completed
           headers:
             RateLimit-Limit:
@@ -5706,7 +5761,7 @@ paths:
 
         Roles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.
 
-        Workflow and side effects: Create a COMPANY profile first. companyId must exist and belong to the caller unless ADMIN. Only the listed request fields are accepted; status defaults OPEN. Numeric salary, coordinates, category, and job time fields are not accepted on this REST creation route yet.
+        Workflow and side effects: Requires an existing owned company profile, or ADMIN. Persists category, status, numeric salary bounds, coordinates, and local job time bounds as well as basic fields. Title (3–255) and description (at least 20) are required. Status defaults OPEN. Supply both coordinates or neither and both local time bounds or neither, with end after start. Numeric salary bounds are whole USD per year and generate the deprecated salaryRange display; legacy-only text remains display-only and is not searched as numeric salary. Creates a job, not an interview slot.
 
         Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
       operationId: createJob
@@ -5714,12 +5769,20 @@ paths:
         content:
           application/json:
             example:
+              category: Technology
               companyId: 1
               description: Build and maintain the recruitment platform APIs.
               employmentType: Full-time
+              endsAt: 2027-02-01T10:00:00
+              latitude: 37.7749
               location: San Francisco
-              salaryRange: 90000-130000
+              longitude: -122.4194
+              maxSalary: 130000
+              minSalary: 90000
+              salaryRange: 90000 - 130000
               skillsRequired: "Java, Spring Boot, PostgreSQL"
+              startsAt: 2027-02-01T09:00:00
+              status: OPEN
               title: Backend Engineer
             schema:
               $ref: '#/components/schemas/CreateJobDto'
@@ -5733,21 +5796,21 @@ paths:
               examples:
                 success:
                   value:
-                    category: null
+                    category: Technology
                     companyId: 1
                     createdAt: 2026-11-25T10:00:00
                     description: Build and maintain the recruitment platform APIs.
                     employmentType: Full-time
-                    endsAt: null
+                    endsAt: 2027-02-01T10:00:00
                     id: 1
-                    latitude: null
+                    latitude: 37.7749
                     location: San Francisco
-                    longitude: null
-                    maxSalary: null
-                    minSalary: null
-                    salaryRange: 90000-130000
+                    longitude: -122.4194
+                    maxSalary: 130000
+                    minSalary: 90000
+                    salaryRange: 90000 - 130000
                     skillsRequired: "Java, Spring Boot, PostgreSQL"
-                    startsAt: null
+                    startsAt: 2027-02-01T09:00:00
                     status: OPEN
                     title: Backend Engineer
               schema:
@@ -5997,7 +6060,7 @@ paths:
                     longitude: -122.4194
                     maxSalary: 130000
                     minSalary: 90000
-                    salaryRange: 90000-130000
+                    salaryRange: 90000 - 130000
                     skillsRequired: "Java, Spring Boot, PostgreSQL"
                     startsAt: null
                     status: OPEN
@@ -6111,7 +6174,7 @@ paths:
 
         Roles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.
 
-        Workflow and side effects: For jobs within 5 km of a house, pass its latitude/longitude and radius_km=5. Supply all three radius parameters OR all four box parameters; do not mix modes. Omit all for every geocoded job. Longitude comes first in GeoJSON. Current radius search is intended for ordinary local areas; polar/dateline behavior needs further work.
+        Workflow and side effects: Supply all three radius parameters OR all four box parameters; mixed or incomplete modes return 400. No filters returns all geocoded jobs. Coordinates are decimal degrees, radius is positive finite kilometres of straight-line spherical distance (Earth radius 6371 km), not travel distance. Radius and box boundaries are inclusive; radius uses 0.1 mm floating-point tolerance. Dateline/pole radius searches are supported. Box minimum latitude must not exceed maximum; min_lon > max_lon means a box crossing the dateline. Longitude +/-180 identifies the same boundary. GeoJSON coordinates are [longitude, latitude]. Null-coordinate jobs are excluded; OPEN, CLOSED, DRAFT and remote jobs with coordinates are included. Results are unpaginated, unbounded and sorted by job ID; no matches returns an empty FeatureCollection.
 
         Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
       operationId: searchByLocation
@@ -6136,8 +6199,8 @@ paths:
           maximum: 180
           minimum: -180
           type: number
-      - description: Positive finite distance in kilometres; 5 finds jobs within 5
-          km.
+      - description: Positive finite kilometres of straight-line spherical distance.
+          Inclusive boundary; 5 finds jobs within 5 km. Poles/dateline are supported.
         example: 5
         in: query
         name: radius_km
@@ -6323,12 +6386,13 @@ paths:
 
         Roles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.
 
-        Workflow and side effects: Deprecated. Use GET /api/v1/jobs?location=... instead. Case-insensitive substring search; blank search terms are rejected. Response remains a bare array.
+        Workflow and side effects: Deprecated array endpoint. Use GET /api/v1/jobs?location=... for a paginated envelope with combined filters. Case-insensitive substring search; blank search terms are rejected. This deprecated route retains its bare-array response.
 
         Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
       operationId: searchJobsByLocation
       parameters:
-      - description: Legacy case-insensitive location substring; nonblank.
+      - description: "Case-insensitive literal location substring, 1–255 characters;\
+          \ combines with every other supplied filter using AND."
         example: San Francisco
         in: query
         name: location
@@ -6356,7 +6420,7 @@ paths:
                     longitude: -122.4194
                     maxSalary: 130000
                     minSalary: 90000
-                    salaryRange: 90000-130000
+                    salaryRange: 90000 - 130000
                     skillsRequired: "Java, Spring Boot, PostgreSQL"
                     startsAt: null
                     status: OPEN
@@ -6470,12 +6534,13 @@ paths:
 
         Roles and ownership: Anonymous, CANDIDATE, COMPANY, and ADMIN.
 
-        Workflow and side effects: Deprecated. Use GET /api/v1/jobs?title=... instead. Case-insensitive substring search; blank search terms are rejected. Response remains a bare array.
+        Workflow and side effects: Deprecated array endpoint. Use GET /api/v1/jobs?title=... for a paginated envelope with combined filters. Case-insensitive substring search; blank search terms are rejected. This deprecated route retains its bare-array response.
 
         Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
       operationId: searchJobsByTitle
       parameters:
-      - description: Legacy case-insensitive title substring; nonblank.
+      - description: "Case-insensitive literal title substring, 1–255 characters;\
+          \ combines with every other supplied filter using AND."
         example: Engineer
         in: query
         name: title
@@ -6503,7 +6568,7 @@ paths:
                     longitude: -122.4194
                     maxSalary: 130000
                     minSalary: 90000
-                    salaryRange: 90000-130000
+                    salaryRange: 90000 - 130000
                     skillsRequired: "Java, Spring Boot, PostgreSQL"
                     startsAt: null
                     status: OPEN
@@ -6854,7 +6919,7 @@ paths:
                     longitude: -122.4194
                     maxSalary: 130000
                     minSalary: 90000
-                    salaryRange: 90000-130000
+                    salaryRange: 90000 - 130000
                     skillsRequired: "Java, Spring Boot, PostgreSQL"
                     startsAt: null
                     status: OPEN
@@ -6990,7 +7055,7 @@ paths:
 
         Roles and ownership: Owning COMPANY or ADMIN. COMPANY cannot reassign ownership.
 
-        Workflow and side effects: Existing job required. title (3–255) and description (at least 20) are required. Basic optional fields are replaced; omitted category/status/numeric salaries are preserved. Salary bounds must be nonnegative and ordered. Coordinates and job times cannot be changed here.
+        Workflow and side effects: Updates only non-null supplied fields; omitted and explicit null fields preserve existing values, matching GraphQL updateJob. Null cannot clear a field. companyId cannot change; ID/createdAt are server-managed. Coordinates and local job time fields are supported; the final coordinate/time pairs must be valid and end must follow start. Numeric salaries are nonnegative whole USD per year, min <= max, and override legacy salaryRange text. Job time updates do not modify InterviewSlot records.
 
         Rate limits: Application HTTP requests (excluding CORS preflight) share a fixed 60-second window per directly connected client IP (default 60 requests; configurable). HTTP 429 includes Retry-After. Forwarded-IP headers are not trusted; clients behind one proxy share its quota.
       operationId: updateJob
@@ -7013,11 +7078,15 @@ paths:
               companyId: 1
               description: Build and maintain the recruitment platform APIs.
               employmentType: Full-time
+              endsAt: 2027-02-01T10:00:00
+              latitude: 37.7749
               location: San Francisco
+              longitude: -122.4194
               maxSalary: 130000
               minSalary: 90000
-              salaryRange: 90000-130000
+              salaryRange: 90000 - 130000
               skillsRequired: "Java, Spring Boot, PostgreSQL"
+              startsAt: 2027-02-01T09:00:00
               status: OPEN
               title: Backend Engineer
             schema:
@@ -7037,16 +7106,16 @@ paths:
                     createdAt: 2026-11-25T10:00:00
                     description: Build and maintain the recruitment platform APIs.
                     employmentType: Full-time
-                    endsAt: null
+                    endsAt: 2027-02-01T10:00:00
                     id: 1
                     latitude: 37.7749
                     location: San Francisco
                     longitude: -122.4194
                     maxSalary: 130000
                     minSalary: 90000
-                    salaryRange: 90000-130000
+                    salaryRange: 90000 - 130000
                     skillsRequired: "Java, Spring Boot, PostgreSQL"
-                    startsAt: null
+                    startsAt: 2027-02-01T09:00:00
                     status: OPEN
                     title: Backend Engineer
               schema:

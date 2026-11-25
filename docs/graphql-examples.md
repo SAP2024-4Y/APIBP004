@@ -25,7 +25,7 @@ Variables:
 {"latitude":37.7749,"longitude":-122.4194}
 ~~~
 
-The response is `{"data":{"jobsNear":[...]}}`; no matches returns an empty list. Latitude must be -90–90, longitude -180–180, and radius positive. This local search does not yet guarantee correct polar or dateline behavior.
+The response is `{"data":{"jobsNear":[...]}}`; no matches returns an empty list. Latitude must be -90–90, longitude -180–180, and radius positive. Distance is straight-line spherical distance in kilometres, not road distance. Boundaries are inclusive; poles/dateline are supported. See [the controlled 5 km fixture and complete expected response](job-discovery.md#reproducible-5-km-example).
 
 ## Browse and inspect a job
 
@@ -38,7 +38,7 @@ query Jobs {
 }
 ~~~
 
-Pass the preceding endCursor as after to continue job discovery. first must be 1–100. Job results currently use ascending ID order; sort and order arguments are ignored. The companies query currently ignores after, so it cannot page beyond its initial results.
+Pass the preceding endCursor as after to continue job discovery. first must be 1–100. Job sorting defaults to created_at desc; id/title/created_at/min_price/max_price support both directions with nulls last and ID tie-breakers. Keep filters, sort, and order unchanged between pages. Companies advances after its cursor in ID ascending order. Invalid or mismatched cursors return VALIDATION_ERROR.
 
 ~~~graphql
 query JobDetails($id: ID!) {
@@ -74,7 +74,7 @@ mutation CreateJob($companyId: Int!) {
 }
 ~~~
 
-Only the owning COMPANY or ADMIN may create/update/delete jobs. Title requires 3–255 characters, description at least 20; salaries must be nonnegative and ordered. Status is OPEN, CLOSED, or DRAFT. Coordinates must be supplied together. startsAt/endsAt job inputs are currently ignored; create an interview slot separately.
+Only the owning COMPANY or ADMIN may create/update/delete jobs. Title requires 3–255 characters, description at least 20; salaries must be nonnegative and ordered. Status is OPEN, CLOSED, or DRAFT. Coordinates must be supplied together. startsAt/endsAt persist local job time bounds, separate from interview slots; supply both on creation with end after start. Numeric salaries are whole USD per year. Updates apply only non-null supplied fields, preserving omitted/explicit-null values.
 
 ## Schedule and read private fields
 

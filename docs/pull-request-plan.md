@@ -7,7 +7,7 @@ Related issues are grouped into seven pull requests, including the merged regist
 | 1 | Restrict public registration roles — merged as PR #34 | #27 |
 | 2 | Shared REST and GraphQL authorization, resource ownership, and private fields — merged as PR #35 | #25, #26 |
 | 3 | Merged as PR #36 — API contracts: Swagger/OpenAPI and GraphQL schema consistency, descriptions, examples, validation, errors, resume handling, and rate-limit documentation | #6, #7, #8, #9, #10, #11, #16, #30, #31 |
-| 4 | Database schema, entity documentation, valid seed relationships, and bulk data | #12, #13, #14, #15 |
+| 4 | Merged as PR #37 — Database schema, entity documentation, valid seed relationships, and bulk data | #12, #13, #14, #15 |
 | 5 | Job fields, salary semantics, filtering, pagination, and geographic search | #17, #18, #19, #20, #21, #22, #29 |
 | 6 | UTC timestamps, scheduling rules, and application lifecycle | #23, #24, #28 |
 | 7 | CI, remaining contract coverage, and executable API walkthrough | #32, #33 |
@@ -79,3 +79,29 @@ Closes #12
 Closes #13
 Closes #14
 Closes #15
+
+## PR 5
+
+Title: **Align job writes and fix search, pagination, and geographic discovery**
+
+Branch: `fix/job-discovery-and-pagination`
+
+Description:
+
+REST and GraphQL now accept the complete editable job fields and share validation and update behavior. Updates preserve omitted or null fields. Numeric salary bounds determine the display text, with a data migration to update existing numeric salaries while preserving legacy-only text. Salary units and filter behavior are documented as whole USD annual base salary.
+
+Job searches combine text, status, category, and salary filters. Cursor pagination supports all five sort fields in both directions, with deterministic ID tie-breakers and nulls last. Cursors validate their resource, filters, and ordering and continue after deletion of the boundary record. GraphQL company pagination now advances correctly.
+
+Geographic discovery includes the 5 km boundary, poles, and dateline crossings. REST GeoJSON and GraphQL queries share the same distance rules. Updated Swagger, GraphQL schema, and examples describe supported fields, salary semantics, and geographic behavior.
+
+Compatibility changes: GET /api/v1/jobs always returns a page envelope, including text searches. Existing base64-ID cursors must be replaced by restarting pagination. Invalid sort/order values and blank search terms now return validation errors. REST PUT preserves omitted/null fields and does not support clearing fields with null. Deprecated title/location search endpoints retain their array responses.
+
+Validation: `mvn -o -f backend/pom.xml test` passed all 97 tests with no failures, errors, or skips, including contract snapshot comparison without regeneration. The 19 discovery integration cases and the additional salary migration test also passed against isolated PostgreSQL 15. Surefire reported a delayed fork shutdown after the full suite; Maven returned BUILD SUCCESS. Manual requests and expected behavior are in `docs/job-discovery.md`.
+
+Closes #17
+Closes #18
+Closes #19
+Closes #20
+Closes #21
+Closes #22
+Closes #29

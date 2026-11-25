@@ -38,6 +38,9 @@ public class JobController {
     @Autowired
     private JobService jobService;
 
+    @Autowired
+    private com.jobportal.service.JobInputMapper jobInputs;
+
     @Operation(
         summary = "List jobs with cursor-based pagination and filtering",
         description = "Returns jobs with optional filters. Supports cursor-based pagination via 'limit' and 'after'. " +
@@ -66,30 +69,13 @@ public class JobController {
             @RequestParam(defaultValue = "20") int limit,
             @Parameter(description = "Opaque cursor for next page (from previous response's next_cursor)")
             @RequestParam(required = false) String after,
-            // Legacy params — kept for backward compatibility
+            // Text filters combine with every other supplied filter using AND.
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String location,
             @RequestParam(required = false) String skills
     ) {
-        // If legacy params are used without new params, fall back to simple list
-        if ((status == null && category == null && min_price == null && max_price == null && after == null)
-                && (title != null || location != null || skills != null)) {
-            List<JobResponseDto> jobs;
-            if (title != null) {
-                jobs = jobService.searchJobsByTitle(title).stream().map(JobResponseDto::from).collect(Collectors.toList());
-            } else if (location != null) {
-                jobs = jobService.searchJobsByLocation(location).stream().map(JobResponseDto::from).collect(Collectors.toList());
-            } else {
-                jobs = jobService.getAllJobs().stream().map(JobResponseDto::from).collect(Collectors.toList());
-            }
-            return ResponseEntity.ok(jobs);
-        }
-
         Map<String, Object> result = jobService.findWithCursorPagination(
-            status, category, min_price, max_price, after, limit,
-            sort != null ? sort : "created_at",
-            order != null ? order : "desc"
-        );
+                status, category, min_price, max_price, after, limit, sort, order, title, location, skills);
         return ResponseEntity.ok(result);
     }
 
@@ -134,14 +120,7 @@ public class JobController {
     @PostMapping
     public ResponseEntity<JobResponseDto> createJob(@jakarta.validation.Valid @RequestBody CreateJobDto createJobDto) {
         access.requireCompanyOwner(createJobDto.getCompanyId());
-        Job job = new Job();
-        job.setCompanyId(createJobDto.getCompanyId());
-        job.setTitle(createJobDto.getTitle());
-        job.setDescription(createJobDto.getDescription());
-        job.setSkillsRequired(createJobDto.getSkillsRequired());
-        job.setSalaryRange(createJobDto.getSalaryRange());
-        job.setLocation(createJobDto.getLocation());
-        job.setEmploymentType(createJobDto.getEmploymentType());
+        Job job = jobInputs.create(createJobDto);
         Job savedJob = jobService.saveJob(job);
         return ResponseEntity.status(HttpStatus.CREATED).body(JobResponseDto.from(savedJob));
     }
@@ -153,21 +132,11 @@ public class JobController {
     @PutMapping("/{id}")
     public ResponseEntity<JobResponseDto> updateJob(@jakarta.validation.constraints.Positive @PathVariable Integer id, @jakarta.validation.Valid @RequestBody com.jobportal.dto.UpdateJobDto jobDetails) {
         access.requireJobOwner(id);
-        Job job = new Job();
-        org.springframework.beans.BeanUtils.copyProperties(jobService.getJobById(id), job);
-        if (jobDetails.getCompanyId() != null && !jobDetails.getCompanyId().equals(job.getCompanyId())) {
+        Job current = jobService.getJobById(id);
+        if (jobDetails.getCompanyId() != null && !jobDetails.getCompanyId().equals(current.getCompanyId())) {
             throw new AccessDeniedException("Job ownership cannot be changed");
         }
-        job.setTitle(jobDetails.getTitle());
-        job.setDescription(jobDetails.getDescription());
-        job.setSkillsRequired(jobDetails.getSkillsRequired());
-        job.setSalaryRange(jobDetails.getSalaryRange());
-        job.setLocation(jobDetails.getLocation());
-        job.setEmploymentType(jobDetails.getEmploymentType());
-        if (jobDetails.getCategory() != null) job.setCategory(jobDetails.getCategory());
-        if (jobDetails.getStatus() != null) job.setStatus(jobDetails.getStatus());
-        if (jobDetails.getMinSalary() != null) job.setMinSalary(jobDetails.getMinSalary());
-        if (jobDetails.getMaxSalary() != null) job.setMaxSalary(jobDetails.getMaxSalary());
+        Job job = jobInputs.update(current, jobDetails);
         return ResponseEntity.ok(JobResponseDto.from(jobService.saveJob(job)));
     }
 

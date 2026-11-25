@@ -169,7 +169,7 @@ class JobServiceTest {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
         Page<Job> jobPage = new PageImpl<>(Arrays.asList(testJob));
-        when(jobRepository.findAll(pageable)).thenReturn(jobPage);
+        when(jobRepository.searchJobs(null, null, null, pageable)).thenReturn(jobPage);
 
         // Act
         Page<Job> result = jobService.searchJobsWithPagination(null, null, null, pageable);
@@ -178,7 +178,7 @@ class JobServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(testJob.getTitle(), result.getContent().get(0).getTitle());
-        verify(jobRepository, times(1)).findAll(pageable);
+        verify(jobRepository, times(1)).searchJobs(null, null, null, pageable);
     }
 
     @Test
